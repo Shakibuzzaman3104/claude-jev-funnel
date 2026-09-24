@@ -1,0 +1,24 @@
+{
+  "questions": {
+    "flaky": {
+      "type": "noul",
+      "instructions": "Would the CI failure in `item.text` likely pass if the same commit were run again with no code changes?",
+      "criteria": {
+        "true": "A transient cause: a network or registry error, a rate limit, a runner shutdown, a timeout on a normally fast step, or a test the log says fails intermittently",
+        "false": "A deterministic cause: a wrong value, a compile or type error, a lint or format error, missing credentials, or an unmet threshold"
+      }
+    },
+    "cause": {
+      "type": "choice",
+      "instructions": "What caused the CI failure in `item.text`?",
+      "criteria": {
+        "test_failure": "A test failed because the code under test returned a wrong value or threw an exception",
+        "build_error": "Compiling, type checking, or installing dependencies failed",
+        "lint": "A formatter or linter rejected the code",
+        "timeout": "A test, step, or job ran longer than its time limit",
+        "infra": "The CI runner, network, credentials, or an external service failed, not the code",
+        "none": "None of the listed causes fits, or the log does not show the cause"
+      }
+    }
+  }
+}

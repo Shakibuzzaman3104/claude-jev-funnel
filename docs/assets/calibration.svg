@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" role="img" aria-labelledby="title desc">
+<title id="title">How far to trust each answer type</title>
+<desc id="desc">Animated bar chart of expected calibration error (ECE) by Jev answer type; lower is better. noul (yes/no): 0.012 (n = 3,600), verdict: trust it. choice (pick one): 0.086 (n = 2,600), verdict: good. score (rubric): 0.254 (n = 600, one dataset), verdict: rank with it, don’t auto-act. Axis from 0 to 0.30. Source: PrimeLine, TypeSafe Jev pre-registered test (primeline.cc).</desc>
+<style>
+svg{--bg:#FFFFFF;--border:#D0D7DE;--ink:#1F2328;--muted:#59636E;--grid:#EAEEF2;--accent:#0C7A63;--yes:#1A7F37;--no:#CF222E;--unc:#9A6700;--cmp:#8C959F}
+@media (prefers-color-scheme:dark){svg{--bg:#0D1117;--border:#30363D;--ink:#E6EDF3;--muted:#9198A1;--grid:#21262D;--accent:#3CC29F;--yes:#3FB950;--no:#F85149;--unc:#D29922;--cmp:#6E7681}}
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+.card{fill:var(--bg);stroke:var(--border)}
+.title{font-size:20px;font-weight:600}
+.lbl{font-size:13px}
+.muted{fill:var(--muted)}
+.cap{font-size:11px;fill:var(--muted)}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.head{font-size:13px;font-weight:600}
+.type{font-size:14px;font-weight:600}
+.verd{font-size:14px}
+.val{font-size:13px;font-weight:600;paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.tick{font-size:12px}
+.grid{stroke:var(--grid);stroke-width:1}
+.base{stroke:var(--border);stroke-width:1}
+.yes{fill:var(--yes)}.acc{fill:var(--accent)}.unc{fill:var(--unc)}
+.glyph{stroke:var(--bg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.bar{transform-box:fill-box;transform-origin:0 50%}
+.g0{animation:g0 9s infinite both}.v0{animation:v0 9s infinite both}.w0{animation:w0 9s infinite both}
+.g1{animation:g1 9s infinite both}.v1{animation:v1 9s infinite both}.w1{animation:w1 9s infinite both}
+.g2{animation:g2 9s infinite both}.v2{animation:v2 9s infinite both}.w2{animation:w2 9s infinite both}
+@keyframes g0{0%,4.44%{transform:scaleX(0);opacity:1;animation-timing-function:cubic-bezier(.25,.6,.3,1)}17.78%{transform:scaleX(1)}93%{opacity:1}100%{opacity:0;transform:scaleX(1)}}
+@keyframes g1{0%,7.22%{transform:scaleX(0);opacity:1;animation-timing-function:cubic-bezier(.25,.6,.3,1)}20.56%{transform:scaleX(1)}93%{opacity:1}100%{opacity:0;transform:scaleX(1)}}
+@keyframes g2{0%,10%{transform:scaleX(0);opacity:1;animation-timing-function:cubic-bezier(.25,.6,.3,1)}25.56%{transform:scaleX(1)}93%{opacity:1}100%{opacity:0;transform:scaleX(1)}}
+@keyframes v0{0%,16.11%{opacity:0;animation-timing-function:cubic-bezier(.25,.6,.3,1)}20.56%,93%{opacity:1}100%{opacity:0}}
+@keyframes v1{0%,18.89%{opacity:0;animation-timing-function:cubic-bezier(.25,.6,.3,1)}23.33%,93%{opacity:1}100%{opacity:0}}
+@keyframes v2{0%,23.89%{opacity:0;animation-timing-function:cubic-bezier(.25,.6,.3,1)}28.33%,93%{opacity:1}100%{opacity:0}}
+@keyframes w0{0%,24.44%{opacity:0;transform:translateX(-8px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}30%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+@keyframes w1{0%,27.78%{opacity:0;transform:translateX(-8px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}33.33%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+@keyframes w2{0%,31.11%{opacity:0;transform:translateX(-8px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}36.67%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<rect class="card" x=".5" y=".5" width="799" height="319" rx="14"/>
+<text class="title" x="28" y="44">How far to trust each answer type</text>
+<text class="lbl muted" x="28" y="68">Expected calibration error: the gap between stated confidence and actual accuracy. Lower is better.</text>
+<text class="head muted" x="28" y="102">Answer type</text>
+<text class="head muted" x="188" y="102">Calibration error (ECE)</text>
+<text class="head muted" x="543" y="102">Verdict</text>
+<g><path class="base" d="M188 114V258"/><path class="grid" d="M243 114V258"/><path class="grid" d="M298 114V258"/><path class="grid" d="M353 114V258"/><path class="grid" d="M408 114V258"/><path class="grid" d="M463 114V258"/><path class="grid" d="M518 114V258"/></g>
+<g><text class="tick num muted" x="188" y="276" text-anchor="start">0</text><text class="tick num muted" x="243" y="276" text-anchor="middle">0.05</text><text class="tick num muted" x="298" y="276" text-anchor="middle">0.10</text><text class="tick num muted" x="353" y="276" text-anchor="middle">0.15</text><text class="tick num muted" x="408" y="276" text-anchor="middle">0.20</text><text class="tick num muted" x="463" y="276" text-anchor="middle">0.25</text><text class="tick num muted" x="518" y="276" text-anchor="middle">0.30</text></g>
+<text x="28" y="134"><tspan class="type">noul</tspan><tspan class="lbl muted" dx="6">yes / no</tspan></text>
+<text class="lbl muted" x="28" y="151">n = <tspan class="num">3,600</tspan></text>
+<path class="bar yes g0" d="M188 126h9.2a4 4 0 0 1 4 4v12a4 4 0 0 1 -4 4h-9.2z"/>
+<text class="val num v0" x="209.2" y="140.5">0.012</text>
+<g class="w0"><circle class="yes" cx="552" cy="136" r="9"/><path class="glyph" d="M548 136.5l2.8 2.8 5.2-5.6"/><text class="verd" x="569" y="141">trust it</text></g>
+<text x="28" y="184"><tspan class="type">choice</tspan><tspan class="lbl muted" dx="6">pick one</tspan></text>
+<text class="lbl muted" x="28" y="201">n = <tspan class="num">2,600</tspan></text>
+<path class="bar acc g1" d="M188 176h90.6a4 4 0 0 1 4 4v12a4 4 0 0 1 -4 4h-90.6z"/>
+<text class="val num v1" x="290.6" y="190.5">0.086</text>
+<g class="w1"><circle class="acc" cx="552" cy="186" r="9"/><path class="glyph" d="M548 186.5l2.8 2.8 5.2-5.6"/><text class="verd" x="569" y="191">good</text></g>
+<text x="28" y="234"><tspan class="type">score</tspan><tspan class="lbl muted" dx="6">rubric</tspan></text>
+<text class="lbl muted" x="28" y="251">n = <tspan class="num">600</tspan>, one dataset</text>
+<path class="bar unc g2" d="M188 226h275.4a4 4 0 0 1 4 4v12a4 4 0 0 1 -4 4h-275.4z"/>
+<text class="val num v2" x="475.4" y="240.5">0.254</text>
+<g class="w2"><circle class="unc" cx="552" cy="236" r="9"/><path class="glyph" d="M547.5 232.5h9M547.5 236h6M547.5 239.5h3"/><text class="verd" x="569" y="241">rank with it, don’t auto-act</text></g>
+<text class="cap" x="28" y="304">Source: PrimeLine, ‘TypeSafe Jev pre-registered test’ (primeline.cc). Score was measured on one dataset (n = 600).</text>
+</svg>

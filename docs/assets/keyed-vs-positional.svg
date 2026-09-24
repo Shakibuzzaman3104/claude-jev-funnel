@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 336" role="img" aria-labelledby="title desc">
+<title id="title">Referencing items: position vs key</title>
+<desc id="desc">Animated comparison of two grids of 320 dots, one dot per yes/no answer. Left: items referenced by array position (items[i]) at 25 items per request; the dots fill in, then 29 scattered dots turn red: 29 of 320 answers landed on the wrong item, and 86 of 320 at 150 items per request. Right: items referenced by keyed id (items.k07), all 320 in one request: all 320 fill in and none are wrong. Placing each item's text inside its own question was also 0 of 320 wrong. Source: pedramamini's jev CLI gist (gist.github.com).</desc>
+<defs>
+<pattern id="pe" width="11" height="11" patternUnits="userSpaceOnUse"><circle class="ghost" cx="5.5" cy="5.5" r="4"/></pattern>
+<pattern id="pa" width="11" height="11" patternUnits="userSpaceOnUse"><circle class="acc" cx="5.5" cy="5.5" r="4"/></pattern>
+</defs>
+<style>
+svg{--bg:#FFFFFF;--border:#D0D7DE;--ink:#1F2328;--muted:#59636E;--grid:#EAEEF2;--accent:#0C7A63;--yes:#1A7F37;--no:#CF222E;--unc:#9A6700;--cmp:#8C959F}
+@media (prefers-color-scheme:dark){svg{--bg:#0D1117;--border:#30363D;--ink:#E6EDF3;--muted:#9198A1;--grid:#21262D;--accent:#3CC29F;--yes:#3FB950;--no:#F85149;--unc:#D29922;--cmp:#6E7681}}
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+.card{fill:var(--bg);stroke:var(--border)}
+.title{font-size:20px;font-weight:600}
+.sub{font-size:13px;fill:var(--muted)}
+.lbl{font-size:14px}
+.strong{font-weight:600}
+.muted{fill:var(--muted)}
+.cap{font-size:11px;fill:var(--muted)}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.code{font-size:13px}
+.big{font-size:22px;font-weight:600}
+.ghost{fill:var(--grid)}
+.acc{fill:var(--accent)}.no{fill:var(--no)}
+.div{stroke:var(--grid);stroke-width:1}
+.dyn{animation:out 9s ease-out infinite both}
+.fo{animation-duration:9s;animation-timing-function:ease-out;animation-iteration-count:infinite;animation-fill-mode:both}
+.l0{animation-name:l0}.l1{animation-name:l1}.l2{animation-name:l2}.l3{animation-name:l3}.l4{animation-name:l4}.l5{animation-name:l5}.l6{animation-name:l6}.l7{animation-name:l7}.l8{animation-name:l8}.l9{animation-name:l9}.l10{animation-name:l10}.l11{animation-name:l11}.l12{animation-name:l12}.k0{animation-name:k0}.w0{animation-name:w0}.w1{animation-name:w1}.w2{animation-name:w2}.w3{animation-name:w3}.w4{animation-name:w4}.w5{animation-name:w5}.w6{animation-name:w6}.w7{animation-name:w7}.w8{animation-name:w8}.w9{animation-name:w9}.w10{animation-name:w10}.w11{animation-name:w11}.w12{animation-name:w12}.w13{animation-name:w13}.w14{animation-name:w14}.w15{animation-name:w15}.w16{animation-name:w16}.w17{animation-name:w17}.w18{animation-name:w18}.w19{animation-name:w19}.w20{animation-name:w20}.w21{animation-name:w21}.w22{animation-name:w22}.w23{animation-name:w23}.w24{animation-name:w24}.w25{animation-name:w25}.w26{animation-name:w26}.w27{animation-name:w27}.w28{animation-name:w28}.res{animation-name:res}.sb{animation-name:sb}
+@keyframes l0{0%,5.556%{opacity:0}8.889%,100%{opacity:1}}
+@keyframes l1{0%,7.639%{opacity:0}10.972%,100%{opacity:1}}
+@keyframes l2{0%,9.722%{opacity:0}13.056%,100%{opacity:1}}
+@keyframes l3{0%,11.806%{opacity:0}15.139%,100%{opacity:1}}
+@keyframes l4{0%,13.889%{opacity:0}17.222%,100%{opacity:1}}
+@keyframes l5{0%,15.972%{opacity:0}19.306%,100%{opacity:1}}
+@keyframes l6{0%,18.056%{opacity:0}21.389%,100%{opacity:1}}
+@keyframes l7{0%,20.139%{opacity:0}23.472%,100%{opacity:1}}
+@keyframes l8{0%,22.222%{opacity:0}25.556%,100%{opacity:1}}
+@keyframes l9{0%,24.306%{opacity:0}27.639%,100%{opacity:1}}
+@keyframes l10{0%,26.389%{opacity:0}29.722%,100%{opacity:1}}
+@keyframes l11{0%,28.472%{opacity:0}31.806%,100%{opacity:1}}
+@keyframes l12{0%,30.556%{opacity:0}33.889%,100%{opacity:1}}
+@keyframes k0{0%,5.556%{opacity:0}8.889%,100%{opacity:1}}
+@keyframes w0{0%,33.333%{opacity:0}36.667%,100%{opacity:1}}
+@keyframes w1{0%,33.793%{opacity:0}37.126%,100%{opacity:1}}
+@keyframes w2{0%,34.253%{opacity:0}37.586%,100%{opacity:1}}
+@keyframes w3{0%,34.713%{opacity:0}38.046%,100%{opacity:1}}
+@keyframes w4{0%,35.172%{opacity:0}38.506%,100%{opacity:1}}
+@keyframes w5{0%,35.632%{opacity:0}38.966%,100%{opacity:1}}
+@keyframes w6{0%,36.092%{opacity:0}39.425%,100%{opacity:1}}
+@keyframes w7{0%,36.552%{opacity:0}39.885%,100%{opacity:1}}
+@keyframes w8{0%,37.011%{opacity:0}40.345%,100%{opacity:1}}
+@keyframes w9{0%,37.471%{opacity:0}40.805%,100%{opacity:1}}
+@keyframes w10{0%,37.931%{opacity:0}41.264%,100%{opacity:1}}
+@keyframes w11{0%,38.391%{opacity:0}41.724%,100%{opacity:1}}
+@keyframes w12{0%,38.851%{opacity:0}42.184%,100%{opacity:1}}
+@keyframes w13{0%,39.31%{opacity:0}42.644%,100%{opacity:1}}
+@keyframes w14{0%,39.77%{opacity:0}43.103%,100%{opacity:1}}
+@keyframes w15{0%,40.23%{opacity:0}43.563%,100%{opacity:1}}
+@keyframes w16{0%,40.69%{opacity:0}44.023%,100%{opacity:1}}
+@keyframes w17{0%,41.149%{opacity:0}44.483%,100%{opacity:1}}
+@keyframes w18{0%,41.609%{opacity:0}44.943%,100%{opacity:1}}
+@keyframes w19{0%,42.069%{opacity:0}45.402%,100%{opacity:1}}
+@keyframes w20{0%,42.529%{opacity:0}45.862%,100%{opacity:1}}
+@keyframes w21{0%,42.989%{opacity:0}46.322%,100%{opacity:1}}
+@keyframes w22{0%,43.448%{opacity:0}46.782%,100%{opacity:1}}
+@keyframes w23{0%,43.908%{opacity:0}47.241%,100%{opacity:1}}
+@keyframes w24{0%,44.368%{opacity:0}47.701%,100%{opacity:1}}
+@keyframes w25{0%,44.828%{opacity:0}48.161%,100%{opacity:1}}
+@keyframes w26{0%,45.287%{opacity:0}48.621%,100%{opacity:1}}
+@keyframes w27{0%,45.747%{opacity:0}49.08%,100%{opacity:1}}
+@keyframes w28{0%,46.207%{opacity:0}49.54%,100%{opacity:1}}
+@keyframes res{0%,50.556%{opacity:0}55.556%,100%{opacity:1}}
+@keyframes sb{0%,53.333%{opacity:0}58.333%,100%{opacity:1}}
+@keyframes out{0%,93.333%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<rect class="card" x=".5" y=".5" width="799" height="335" rx="14"/>
+<text class="title" x="28" y="44">Referencing items: position vs key</text>
+<text class="sub" x="28" y="68">320 yes/no items, one question each. Every dot is one answer; red means it landed on the wrong item.</text>
+<line class="div" x1="400" y1="86" x2="400" y2="286"/>
+<text class="lbl" x="28" y="100"><tspan class="strong">By position</tspan> <tspan class="num code">items[i]</tspan><tspan class="muted"> · 25 per request</tspan></text>
+<text class="lbl" x="420" y="100"><tspan class="strong">By key</tspan> <tspan class="num code">items.k07</tspan><tspan class="muted"> · all 320 in one request</tspan></text>
+<rect transform="translate(28 114)" width="352" height="110" fill="url(#pe)"/>
+<rect transform="translate(420 114)" width="352" height="110" fill="url(#pe)"/>
+<g class="dyn">
+<g transform="translate(28 114)">
+<g class="fo l0" fill="url(#pa)"><rect x="0" y="0" width="275" height="11"/></g>
+<g class="fo l1" fill="url(#pa)"><rect x="275" y="0" width="77" height="11"/><rect x="0" y="11" width="198" height="11"/></g>
+<g class="fo l2" fill="url(#pa)"><rect x="198" y="11" width="154" height="11"/><rect x="0" y="22" width="121" height="11"/></g>
+<g class="fo l3" fill="url(#pa)"><rect x="121" y="22" width="231" height="11"/><rect x="0" y="33" width="44" height="11"/></g>
+<g class="fo l4" fill="url(#pa)"><rect x="44" y="33" width="275" height="11"/></g>
+<g class="fo l5" fill="url(#pa)"><rect x="319" y="33" width="33" height="11"/><rect x="0" y="44" width="242" height="11"/></g>
+<g class="fo l6" fill="url(#pa)"><rect x="242" y="44" width="110" height="11"/><rect x="0" y="55" width="165" height="11"/></g>
+<g class="fo l7" fill="url(#pa)"><rect x="165" y="55" width="187" height="11"/><rect x="0" y="66" width="88" height="11"/></g>
+<g class="fo l8" fill="url(#pa)"><rect x="88" y="66" width="264" height="11"/><rect x="0" y="77" width="11" height="11"/></g>
+<g class="fo l9" fill="url(#pa)"><rect x="11" y="77" width="275" height="11"/></g>
+<g class="fo l10" fill="url(#pa)"><rect x="286" y="77" width="66" height="11"/><rect x="0" y="88" width="209" height="11"/></g>
+<g class="fo l11" fill="url(#pa)"><rect x="209" y="88" width="143" height="11"/><rect x="0" y="99" width="132" height="11"/></g>
+<g class="fo l12" fill="url(#pa)"><rect x="132" y="99" width="220" height="11"/></g>
+<circle class="no fo w0" cx="258.5" cy="60.5" r="4.3"/>
+<circle class="no fo w1" cx="225.5" cy="104.5" r="4.3"/>
+<circle class="no fo w2" cx="280.5" cy="93.5" r="4.3"/>
+<circle class="no fo w3" cx="203.5" cy="16.5" r="4.3"/>
+<circle class="no fo w4" cx="280.5" cy="5.5" r="4.3"/>
+<circle class="no fo w5" cx="313.5" cy="104.5" r="4.3"/>
+<circle class="no fo w6" cx="16.5" cy="71.5" r="4.3"/>
+<circle class="no fo w7" cx="258.5" cy="5.5" r="4.3"/>
+<circle class="no fo w8" cx="159.5" cy="49.5" r="4.3"/>
+<circle class="no fo w9" cx="225.5" cy="60.5" r="4.3"/>
+<circle class="no fo w10" cx="16.5" cy="38.5" r="4.3"/>
+<circle class="no fo w11" cx="137.5" cy="60.5" r="4.3"/>
+<circle class="no fo w12" cx="148.5" cy="104.5" r="4.3"/>
+<circle class="no fo w13" cx="71.5" cy="38.5" r="4.3"/>
+<circle class="no fo w14" cx="346.5" cy="16.5" r="4.3"/>
+<circle class="no fo w15" cx="335.5" cy="82.5" r="4.3"/>
+<circle class="no fo w16" cx="203.5" cy="38.5" r="4.3"/>
+<circle class="no fo w17" cx="16.5" cy="16.5" r="4.3"/>
+<circle class="no fo w18" cx="247.5" cy="104.5" r="4.3"/>
+<circle class="no fo w19" cx="324.5" cy="49.5" r="4.3"/>
+<circle class="no fo w20" cx="203.5" cy="104.5" r="4.3"/>
+<circle class="no fo w21" cx="38.5" cy="93.5" r="4.3"/>
+<circle class="no fo w22" cx="269.5" cy="38.5" r="4.3"/>
+<circle class="no fo w23" cx="60.5" cy="93.5" r="4.3"/>
+<circle class="no fo w24" cx="159.5" cy="27.5" r="4.3"/>
+<circle class="no fo w25" cx="181.5" cy="27.5" r="4.3"/>
+<circle class="no fo w26" cx="313.5" cy="71.5" r="4.3"/>
+<circle class="no fo w27" cx="71.5" cy="60.5" r="4.3"/>
+<circle class="no fo w28" cx="324.5" cy="27.5" r="4.3"/>
+</g>
+<g transform="translate(420 114)">
+<rect class="fo k0" width="352" height="110" fill="url(#pa)"/>
+</g>
+<text class="lbl fo res" x="28" y="260"><tspan class="num big no">29 / 320</tspan> answers on the wrong item</text>
+<text class="lbl fo res" x="420" y="260"><tspan class="num big acc">0 / 320</tspan> answers on the wrong item</text>
+<text class="lbl muted fo sb" x="28" y="282"><tspan class="num">86 / 320</tspan> at <tspan class="num">150</tspan> per request</text>
+<text class="lbl muted fo sb" x="420" y="282">and <tspan class="num">0 / 320</tspan> with each item in its own question</text>
+</g>
+<text class="cap" x="28" y="320">Source: pedramamini’s jev CLI gist (gist.github.com). Red dot positions are illustrative; the counts are measured.</text>
+</svg>

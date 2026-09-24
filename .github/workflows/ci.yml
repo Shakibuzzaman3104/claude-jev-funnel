@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+    env:
+      JEV: skills/jev/scripts/jev.py
+      RANK_QUESTION: "Does this search result give steps to fix a pip install that fails with an SSL certificate verification error?"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Isolate ledger and cache
+        run: |
+          echo "JEV_LEDGER=$RUNNER_TEMP/jev/usage.jsonl" >> "$GITHUB_ENV"
+          echo "JEV_CACHE_DIR=$RUNNER_TEMP/jev/cache" >> "$GITHUB_ENV"
+
+      - name: Compile
+        run: python -m py_compile "$JEV"
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Example review-triage
+        run: |
+          python "$JEV" batch --items examples/review-triage/items.jsonl --template examples/review-triage/template.json --dry-run > /dev/null
+          python "$JEV" batch --items examples/review-triage/items.jsonl --template examples/review-triage/template.json --mock > /dev/null
+
+      - name: Example rank-candidates
+        run: |
+          python "$JEV" rank --items examples/rank-candidates/items.jsonl --question "$RANK_QUESTION" --dry-run > /dev/null
+          python "$JEV" rank --items examples/rank-candidates/items.jsonl --question "$RANK_QUESTION" --mock > /dev/null
+
+      - name: Example eval
+        run: |
+          python "$JEV" eval --cases examples/eval/cases.jsonl --template examples/eval/template.json --fields text --dry-run > /dev/null
+          python "$JEV" eval --cases examples/eval/cases.jsonl --template examples/eval/template.json --fields text --mock > /dev/null

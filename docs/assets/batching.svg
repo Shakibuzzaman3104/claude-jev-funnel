@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 356" role="img" aria-labelledby="title desc">
+<title id="title">Batched vs one at a time</title>
+<desc id="desc">Animated timeline on a shared time axis. Thirteen questions about one ~54,000-character GDPR article, sent as one batched request, finish in 0.27 s for $0.000497. The same thirteen questions sent one per request, one after another, take 2.71 s and $0.006090. Batching is 12.2 times cheaper and 10.0 times faster, and adds no bias or variance to the answers. Source: TypeSafe cookbook, Parallel questions (docs.typesafe.ai), 5 repeats of each strategy.</desc>
+<style>
+svg{--bg:#FFFFFF;--border:#D0D7DE;--ink:#1F2328;--muted:#59636E;--grid:#EAEEF2;--accent:#0C7A63;--yes:#1A7F37;--no:#CF222E;--unc:#9A6700;--cmp:#8C959F}
+@media (prefers-color-scheme:dark){svg{--bg:#0D1117;--border:#30363D;--ink:#E6EDF3;--muted:#9198A1;--grid:#21262D;--accent:#3CC29F;--yes:#3FB950;--no:#F85149;--unc:#D29922;--cmp:#6E7681}}
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+.card{fill:var(--bg);stroke:var(--border)}
+.title{font-size:20px;font-weight:600}
+.sub{font-size:13px;fill:var(--muted)}
+.lbl{font-size:14px}
+.strong{font-weight:600}
+.muted{fill:var(--muted)}
+.cap{font-size:11px;fill:var(--muted)}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.tick{font-size:12px;fill:var(--muted)}
+.gl{stroke:var(--grid);stroke-width:1}
+.ax{stroke:var(--border);stroke-width:1}
+.acc{fill:var(--accent)}.cmp{fill:var(--cmp)}
+.chip{fill:var(--bg)}
+.read{font-size:13px;paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.big{font-size:14px;font-weight:600}
+.ban{font-size:16px;font-weight:600}
+.accv{fill:var(--accent)}
+.ph,.pt{stroke:var(--ink);stroke-width:1;opacity:0;stroke-dasharray:3 3;fill:none}
+.bar{transform-box:fill-box;transform-origin:0 50%}
+.dyn{animation:out 9s ease-out infinite both}
+.lin,.fo,.ph,.pt,.ban{animation-duration:9s;animation-iteration-count:infinite;animation-fill-mode:both}
+.lin,.ph,.pt{animation-timing-function:linear}
+.fo,.ban{animation-timing-function:ease-out}
+.ph{animation-name:ph}.pt{animation-name:pt}.ban{animation-name:ban}
+.b1{animation-name:b1}.c0{animation-name:c0}.c1{animation-name:c1}.c2{animation-name:c2}.c3{animation-name:c3}.c4{animation-name:c4}.c5{animation-name:c5}.c6{animation-name:c6}.c7{animation-name:c7}.c8{animation-name:c8}.c9{animation-name:c9}.c10{animation-name:c10}.c11{animation-name:c11}.c12{animation-name:c12}.r1{animation-name:r1}.s0{animation-name:s0}.q0{animation-name:q0}.s1{animation-name:s1}.q1{animation-name:q1}.s2{animation-name:s2}.q2{animation-name:q2}.s3{animation-name:s3}.q3{animation-name:q3}.s4{animation-name:s4}.q4{animation-name:q4}.s5{animation-name:s5}.q5{animation-name:q5}.s6{animation-name:s6}.q6{animation-name:q6}.s7{animation-name:s7}.q7{animation-name:q7}.s8{animation-name:s8}.q8{animation-name:q8}.s9{animation-name:s9}.q9{animation-name:q9}.s10{animation-name:s10}.q10{animation-name:q10}.s11{animation-name:s11}.q11{animation-name:q11}.s12{animation-name:s12}.q12{animation-name:q12}.r2{animation-name:r2}
+@keyframes b1{0%,6.667%{transform:scaleX(0)}11.167%,100%{transform:scaleX(1)}}
+@keyframes c0{0%,7.38%{opacity:0}8.713%,100%{opacity:1}}
+@keyframes c1{0%,7.67%{opacity:0}9.004%,100%{opacity:1}}
+@keyframes c2{0%,7.961%{opacity:0}9.294%,100%{opacity:1}}
+@keyframes c3{0%,8.252%{opacity:0}9.585%,100%{opacity:1}}
+@keyframes c4{0%,8.542%{opacity:0}9.875%,100%{opacity:1}}
+@keyframes c5{0%,8.833%{opacity:0}10.166%,100%{opacity:1}}
+@keyframes c6{0%,9.123%{opacity:0}10.456%,100%{opacity:1}}
+@keyframes c7{0%,9.414%{opacity:0}10.747%,100%{opacity:1}}
+@keyframes c8{0%,9.704%{opacity:0}11.037%,100%{opacity:1}}
+@keyframes c9{0%,9.995%{opacity:0}11.328%,100%{opacity:1}}
+@keyframes c10{0%,10.285%{opacity:0}11.619%,100%{opacity:1}}
+@keyframes c11{0%,10.576%{opacity:0}11.909%,100%{opacity:1}}
+@keyframes c12{0%,10.866%{opacity:0}12.2%,100%{opacity:1}}
+@keyframes r1{0%,11.722%{opacity:0}15.056%,100%{opacity:1}}
+@keyframes s0{0%,6.667%{transform:scaleX(0)}9.988%,100%{transform:scaleX(1)}}
+@keyframes q0{0%,8.534%{opacity:0}9.867%,100%{opacity:1}}
+@keyframes s1{0%,10.141%{transform:scaleX(0)}13.462%,100%{transform:scaleX(1)}}
+@keyframes q1{0%,12.008%{opacity:0}13.342%,100%{opacity:1}}
+@keyframes s2{0%,13.615%{transform:scaleX(0)}16.937%,100%{transform:scaleX(1)}}
+@keyframes q2{0%,15.483%{opacity:0}16.816%,100%{opacity:1}}
+@keyframes s3{0%,17.09%{transform:scaleX(0)}20.411%,100%{transform:scaleX(1)}}
+@keyframes q3{0%,18.957%{opacity:0}20.29%,100%{opacity:1}}
+@keyframes s4{0%,20.564%{transform:scaleX(0)}23.886%,100%{transform:scaleX(1)}}
+@keyframes q4{0%,22.431%{opacity:0}23.765%,100%{opacity:1}}
+@keyframes s5{0%,24.038%{transform:scaleX(0)}27.36%,100%{transform:scaleX(1)}}
+@keyframes q5{0%,25.906%{opacity:0}27.239%,100%{opacity:1}}
+@keyframes s6{0%,27.513%{transform:scaleX(0)}30.834%,100%{transform:scaleX(1)}}
+@keyframes q6{0%,29.38%{opacity:0}30.713%,100%{opacity:1}}
+@keyframes s7{0%,30.987%{transform:scaleX(0)}34.309%,100%{transform:scaleX(1)}}
+@keyframes q7{0%,32.854%{opacity:0}34.188%,100%{opacity:1}}
+@keyframes s8{0%,34.462%{transform:scaleX(0)}37.783%,100%{transform:scaleX(1)}}
+@keyframes q8{0%,36.329%{opacity:0}37.662%,100%{opacity:1}}
+@keyframes s9{0%,37.936%{transform:scaleX(0)}41.257%,100%{transform:scaleX(1)}}
+@keyframes q9{0%,39.803%{opacity:0}41.136%,100%{opacity:1}}
+@keyframes s10{0%,41.41%{transform:scaleX(0)}44.732%,100%{transform:scaleX(1)}}
+@keyframes q10{0%,43.277%{opacity:0}44.611%,100%{opacity:1}}
+@keyframes s11{0%,44.885%{transform:scaleX(0)}48.206%,100%{transform:scaleX(1)}}
+@keyframes q11{0%,46.752%{opacity:0}48.085%,100%{opacity:1}}
+@keyframes s12{0%,48.359%{transform:scaleX(0)}51.68%,100%{transform:scaleX(1)}}
+@keyframes q12{0%,50.226%{opacity:0}51.559%,100%{opacity:1}}
+@keyframes r2{0%,52.389%{opacity:0}55.722%,100%{opacity:1}}
+@keyframes ph{0%{opacity:0;transform:translateX(0)}3.889%{opacity:0;transform:translateX(0)}6.667%{opacity:1;transform:translateX(0)}51.833%{opacity:1;transform:translateX(590.78px)}55.167%,100%{opacity:0;transform:translateX(590.78px)}}
+@keyframes pt{0%,3.889%{opacity:0;transform:translateX(0)}6.667%{opacity:1;transform:translateX(0)}11.167%{opacity:1;transform:translateX(58.86px)}12.5%,100%{opacity:0;transform:translateX(76.29px)}}
+@keyframes ban{0%,56.833%{opacity:0;transform:translateY(6px)}62.389%,100%{opacity:1;transform:translateY(0)}}
+@keyframes out{0%,94.444%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<rect class="card" x=".5" y=".5" width="799" height="355" rx="14"/>
+<text class="title" x="28" y="44">13 questions about one document: batched vs one at a time</text>
+<text class="sub" x="28" y="68">8 noul, 2 choice and 3 score questions over a ~54,000-character GDPR article</text>
+<line class="gl" x1="28" y1="108" x2="28" y2="230"/>
+<line class="gl" x1="137" y1="108" x2="137" y2="230"/>
+<line class="gl" x1="246" y1="108" x2="246" y2="230"/>
+<line class="gl" x1="355" y1="108" x2="355" y2="230"/>
+<line class="gl" x1="464" y1="108" x2="464" y2="230"/>
+<line class="gl" x1="573" y1="108" x2="573" y2="230"/>
+<line class="ax" x1="28" y1="230" x2="618.78" y2="230"/>
+<text class="tick num" x="28" y="247" text-anchor="start">0</text>
+<text class="tick num" x="137" y="247" text-anchor="middle">0.5</text>
+<text class="tick num" x="246" y="247" text-anchor="middle">1.0</text>
+<text class="tick num" x="355" y="247" text-anchor="middle">1.5</text>
+<text class="tick num" x="464" y="247" text-anchor="middle">2.0</text>
+<text class="tick num" x="573" y="247" text-anchor="middle">2.5</text>
+<text class="tick" x="772" y="247" text-anchor="end">seconds, shared scale</text>
+<text class="lbl" x="28" y="102"><tspan class="strong">Batched</tspan><tspan class="muted"> · 1 request carrying all 13 questions</tspan></text>
+<text class="lbl" x="28" y="174"><tspan class="strong">One at a time</tspan><tspan class="muted"> · 13 requests, 1 question each</tspan></text>
+<g class="dyn">
+<rect class="acc bar lin b1" x="28" y="112" width="58.86" height="30" rx="3"/>
+<circle class="chip fo c0" cx="34.63" cy="122" r="2.7"/>
+<circle class="chip fo c1" cx="38.43" cy="132" r="2.7"/>
+<circle class="chip fo c2" cx="42.23" cy="122" r="2.7"/>
+<circle class="chip fo c3" cx="46.03" cy="132" r="2.7"/>
+<circle class="chip fo c4" cx="49.83" cy="122" r="2.7"/>
+<circle class="chip fo c5" cx="53.63" cy="132" r="2.7"/>
+<circle class="chip fo c6" cx="57.43" cy="122" r="2.7"/>
+<circle class="chip fo c7" cx="61.23" cy="132" r="2.7"/>
+<circle class="chip fo c8" cx="65.03" cy="122" r="2.7"/>
+<circle class="chip fo c9" cx="68.83" cy="132" r="2.7"/>
+<circle class="chip fo c10" cx="72.63" cy="122" r="2.7"/>
+<circle class="chip fo c11" cx="76.43" cy="132" r="2.7"/>
+<circle class="chip fo c12" cx="80.23" cy="122" r="2.7"/>
+<rect class="cmp bar lin s0" x="28" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q0" cx="49.8" cy="199" r="2.7"/>
+<rect class="cmp bar lin s1" x="73.6" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q1" cx="95.4" cy="199" r="2.7"/>
+<rect class="cmp bar lin s2" x="119.2" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q2" cx="141" cy="199" r="2.7"/>
+<rect class="cmp bar lin s3" x="164.8" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q3" cx="186.6" cy="199" r="2.7"/>
+<rect class="cmp bar lin s4" x="210.4" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q4" cx="232.2" cy="199" r="2.7"/>
+<rect class="cmp bar lin s5" x="256" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q5" cx="277.8" cy="199" r="2.7"/>
+<rect class="cmp bar lin s6" x="301.6" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q6" cx="323.4" cy="199" r="2.7"/>
+<rect class="cmp bar lin s7" x="347.2" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q7" cx="369" cy="199" r="2.7"/>
+<rect class="cmp bar lin s8" x="392.8" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q8" cx="414.6" cy="199" r="2.7"/>
+<rect class="cmp bar lin s9" x="438.4" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q9" cx="460.2" cy="199" r="2.7"/>
+<rect class="cmp bar lin s10" x="484" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q10" cx="505.8" cy="199" r="2.7"/>
+<rect class="cmp bar lin s11" x="529.6" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q11" cx="551.4" cy="199" r="2.7"/>
+<rect class="cmp bar lin s12" x="575.2" y="184" width="43.6" height="30" rx="3"/>
+<circle class="chip fo q12" cx="597" cy="199" r="2.7"/>
+<path class="pt" d="M28 107V147"/>
+<path class="ph" d="M28 179V230"/>
+<text class="read fo r1" x="98.86" y="132"><tspan class="num big">0.27 s</tspan><tspan class="num" dx="10">$0.000497</tspan></text>
+<text class="read fo r2" x="630.78" y="204"><tspan class="num big">2.71 s</tspan><tspan class="num" dx="10">$0.006090</tspan></text>
+<text class="ban" x="28" y="284"><tspan class="num accv">12.2×</tspan> cheaper<tspan class="muted"> · </tspan><tspan class="num accv">10.0×</tspan> faster<tspan class="muted"> · </tspan>adds no bias or variance</text>
+</g>
+<text class="cap" x="28" y="324">Source: TypeSafe cookbook ‘Parallel questions’ (docs.typesafe.ai), GDPR article, 5 repeats of each strategy.</text>
+<text class="cap" x="28" y="340">The 13-request time is the sum of single-call latencies, as if sent one after another.</text>
+</svg>

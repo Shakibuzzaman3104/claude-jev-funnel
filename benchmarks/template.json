@@ -1,0 +1,23 @@
+{
+  "questions": {
+    "topic": {
+      "type": "choice",
+      "instructions": "What is `item.text` mainly about?",
+      "criteria": {
+        "bug": "A crash, freeze, error, or something in the app not working as intended",
+        "feature": "A request for a feature, setting, or change the app does not currently offer",
+        "praise": "Positive feedback or satisfaction with no problem or request attached",
+        "other": "Some other topic, such as a vague opinion or general comment, that isn't a bug, feature request, or praise",
+        "none": "None of these fits"
+      }
+    },
+    "blocking": {
+      "type": "noul",
+      "instructions": "Does `item.text` report something that stops the app from working?",
+      "criteria": {
+        "true": "The text describes a crash, freeze, hang, or failure that prevents using the app or a core feature",
+        "false": "The text does not describe anything preventing the app from working, such as praise, a feature request, or a minor annoyance"
+      }
+    }
+  }
+}

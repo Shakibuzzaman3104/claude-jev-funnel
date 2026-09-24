@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/
+
+# Local jev ledgers and caches
+usage.jsonl
+cache.sqlite
+cache.sqlite-*
+
+# Output from running the examples
+examples/**/answers*.jsonl
+
+# Secrets
+.env
+.env.*
+
+# --out compaction temp files left by a killed run
+.jev-*.jsonl
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+htmlcov/
+build/
+dist/

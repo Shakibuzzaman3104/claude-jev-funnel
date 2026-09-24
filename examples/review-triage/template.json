@@ -1,0 +1,34 @@
+{
+  "questions": {
+    "topic": {
+      "type": "choice",
+      "instructions": "What is the main subject of the app review in `item.text`?",
+      "criteria": {
+        "bug": "Something in the app crashes, freezes, loses data, or does not work as intended",
+        "billing": "Charges, refunds, trials, subscriptions, or price changes",
+        "performance": "Slowness, battery drain, or storage use, with features otherwise working",
+        "feature_request": "Asks for a feature, setting, or change the app does not offer",
+        "praise": "Praise or general satisfaction with no problem or request",
+        "none": "None of the listed subjects fits the review"
+      }
+    },
+    "needs_reply": {
+      "type": "noul",
+      "instructions": "Does the review in `item.text` report a specific problem that a support agent could investigate or fix for this reviewer?",
+      "criteria": {
+        "true": "A concrete failure, lost data, a login problem, or a billing error affecting this reviewer",
+        "false": "Praise, a feature request, a vague opinion, or a general complaint about price or design"
+      }
+    },
+    "severity": {
+      "type": "score",
+      "instructions": "How much does the problem described in `item.text` stop the reviewer from using the app?",
+      "criteria": [
+        "No problem is reported; the review is praise, a question, or a feature request",
+        "A minor annoyance; the reviewer can still do everything they need",
+        "A feature the reviewer relies on is broken, slow, or unreliable",
+        "The reviewer cannot use the app, lost data, or was charged wrongly"
+      ]
+    }
+  }
+}

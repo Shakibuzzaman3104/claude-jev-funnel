@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 272" role="img" aria-labelledby="title desc">
+<title id="title">Same judging task, time to answer</title>
+<desc id="desc">Animated bar race on one time axis, playing in real time. Median latency: Jev 378 milliseconds; Claude Sonnet 5 at high reasoning 3,554 milliseconds. Accuracy over 306 decisions: Jev 100%, Claude Sonnet 5 99%. Source: Greenberg, Jev vs Claude: Who Wins? (dev.to). Results vary by task.</desc>
+<style>
+svg{--bg:#FFFFFF;--border:#D0D7DE;--ink:#1F2328;--muted:#59636E;--grid:#EAEEF2;--accent:#0C7A63;--yes:#1A7F37;--no:#CF222E;--unc:#9A6700;--cmp:#8C959F}
+@media (prefers-color-scheme:dark){svg{--bg:#0D1117;--border:#30363D;--ink:#E6EDF3;--muted:#9198A1;--grid:#21262D;--accent:#3CC29F;--yes:#3FB950;--no:#F85149;--unc:#D29922;--cmp:#6E7681}}
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+.card{fill:var(--bg);stroke:var(--border)}
+.title{font-size:20px;font-weight:600}
+.lbl{font-size:13px}
+.name{font-size:14px;font-weight:600}
+.muted{fill:var(--muted)}
+.cap{font-size:11px;fill:var(--muted)}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.val{font-size:13px;font-weight:600}
+.grid{stroke:var(--grid);stroke-width:1}
+.base{stroke:var(--border);stroke-width:1}
+.acc{fill:var(--accent)}
+.cmp{fill:var(--cmp)}
+.pill{stroke-width:1}
+.pill.acc{fill:var(--accent);fill-opacity:.14;stroke:var(--accent)}
+.pill.cmp{fill:var(--cmp);fill-opacity:.18;stroke:var(--cmp)}
+.a{animation-duration:10s;animation-iteration-count:infinite;animation-fill-mode:both;animation-timing-function:ease-out}
+.bj{animation-name:bj;animation-timing-function:linear}
+.bs{animation-name:bs;animation-timing-function:linear}
+.vj{animation-name:vj}
+.vs{animation-name:vs}
+.badge{animation-name:badge}
+@keyframes bj{0%,6%{translate:-49.14px 0}9.78%{translate:none}94%{opacity:1}100%{opacity:0;translate:none}}
+@keyframes bs{0%,6%{translate:-462.02px 0}41.54%{translate:none}94%{opacity:1}100%{opacity:0;translate:none}}
+@keyframes vj{0%,9.78%{opacity:0}12.78%{opacity:1}94%{opacity:1}100%{opacity:0}}
+@keyframes vs{0%,41.54%{opacity:0}44.54%{opacity:1}94%{opacity:1}100%{opacity:0}}
+@keyframes badge{0%,46%{opacity:0;translate:0 4px}51%{opacity:1;translate:none}94%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<defs><clipPath id="plot"><rect x="150" y="100" width="650" height="110"/></clipPath></defs>
+<rect class="card" x=".5" y=".5" width="799" height="271" rx="14"/>
+<text class="title" x="28" y="44">Same judging task, time to answer</text>
+<text class="lbl muted" x="28" y="68">Median time per decision, drawn in real time on one axis: Jev finishes while Sonnet is still working.</text>
+<text class="lbl muted" x="736" y="104" text-anchor="middle">Accuracy</text>
+<path class="grid" d="M280 112V204M410 112V204M540 112V204"/>
+<path class="base" d="M150 112V204"/>
+<text class="lbl muted num" text-anchor="middle" y="224"><tspan x="150">0 s</tspan><tspan x="280">1 s</tspan><tspan x="410">2 s</tspan><tspan x="540">3 s</tspan></text>
+<text class="name" x="28" y="137">Jev</text>
+<text class="name" x="28" y="185">Claude Sonnet 5</text>
+<g clip-path="url(#plot)">
+<path class="acc a bj" d="M150 121H195.14a4 4 0 0 1 4 4V139a4 4 0 0 1-4 4H150Z"/>
+<path class="cmp a bs" d="M150 169H608.02a4 4 0 0 1 4 4V187a4 4 0 0 1-4 4H150Z"/>
+</g>
+<text class="num val a vj" x="209.1" y="137">378 ms</text>
+<text class="num val a vs" x="622" y="185">3.55 s</text>
+<g class="a badge">
+<rect class="pill acc" x="704.5" y="121.5" width="63" height="21" rx="10.5"/>
+<text class="num val" x="736" y="136.5" text-anchor="middle">100%</text>
+<rect class="pill cmp" x="704.5" y="169.5" width="63" height="21" rx="10.5"/>
+<text class="num val" x="736" y="184.5" text-anchor="middle">99%</text>
+</g>
+<text class="cap" x="28" y="256">Source: Greenberg, ‘Jev vs Claude: Who Wins?’ (dev.to). Medians over 306 decisions on one 3-state task. Results vary.</text>
+</svg>

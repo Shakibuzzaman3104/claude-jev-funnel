@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-24",
+  "description": "Live throughput benchmark of `jev.py batch` against 500 synthetic app-review-style items, two questions per item.",
+  "command": "JEV_LEDGER=/tmp/jev-bench/ledger.jsonl JEV_CACHE_DIR=/tmp/jev-bench/cache python3 skills/jev/scripts/jev.py batch --items /tmp/jev-bench-items.jsonl --template benchmarks/template.json --out /tmp/jev-bench/answers.jsonl --no-cache --workers 8 --label benchmark",
+  "provider": "openrouter",
+  "model": "typesafe/jev-1.13-20260917",
+  "items": 500,
+  "questions_per_item": 2,
+  "per_request_default": 40,
+  "workers": 8,
+  "requests": 13,
+  "errors": 0,
+  "wall_seconds_real": 3.92,
+  "wall_seconds_user": 1.59,
+  "wall_seconds_sys": 0.08,
+  "request_latency_ms": {
+    "min": 511,
+    "p50": 2279,
+    "p95": 2355,
+    "max": 2355,
+    "note": "n=13 requests. p50/p95 as printed by jev.py's summary (nearest-rank, timed around the whole call); min/max from $JEV_LEDGER (timed per HTTP attempt), whose p50 is 2274 ms"
+  },
+  "input_tokens_total": 145106,
+  "cost_usd_total": 0.006094,
+  "cost_source": "reported",
+  "band_counts": {
+    "topic (choice)": { "ACT": 481, "REVIEW": 19, "ABSTAIN": 0 },
+    "blocking (noul)": { "YES": 88, "NO": 381, "UNCERTAIN": 31 }
+  },
+  "source": "Measured directly from one live run's stderr summary and $JEV_LEDGER; no numbers are estimates or taken from prior notes.",
+  "caveats": [
+    "Single run, one machine, one network path, one moment in time — not an average across runs.",
+    "This is a throughput/latency/cost measurement only. It makes no accuracy or calibration claim.",
+    "Items are synthetic (see benchmarks/make_items.py), not real app reviews.",
+    "13 requests is a small sample; treat p50/p95 as indicative, not a tight SLA."
+  ]
+}

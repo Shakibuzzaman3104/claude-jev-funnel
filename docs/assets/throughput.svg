@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 372" role="img" aria-labelledby="title desc">
+<title id="title">Measured with this CLI</title>
+<desc id="desc">Animated benchmark of one live jev.py batch run on 2026-09-24. A counter rises from 0 to 500 items judged while a progress bar fills in real time over the measured 3.92 seconds of wall time. Stat tiles: 500 items, 2 questions each; 13 requests of up to 40 items, 0 errors; wall time 3.92 s with 8 workers and the cache off; request latency p50 2279 ms and p95 2355 ms over 13 requests; total cost $0.006094 as reported by OpenRouter for 145,106 input tokens; cost per 1,000 items $0.012188. Model typesafe/jev-1.13-20260917 via OpenRouter, synthetic app-review-style items. Source: benchmarks/results/2026-09-24.json.</desc>
+<style>
+svg{--bg:#FFFFFF;--border:#D0D7DE;--ink:#1F2328;--muted:#59636E;--grid:#EAEEF2;--accent:#0C7A63;--yes:#1A7F37;--no:#CF222E;--unc:#9A6700;--cmp:#8C959F}
+@media (prefers-color-scheme:dark){svg{--bg:#0D1117;--border:#30363D;--ink:#E6EDF3;--muted:#9198A1;--grid:#21262D;--accent:#3CC29F;--yes:#3FB950;--no:#F85149;--unc:#D29922;--cmp:#6E7681}}
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+.card{fill:var(--bg);stroke:var(--border)}
+.title{font-size:20px;font-weight:600}
+.lbl{font-size:13px}
+.muted{fill:var(--muted)}
+.cap{font-size:11px;fill:var(--muted)}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.big{font-size:40px;font-weight:600}
+.unit{font-size:14px}
+.tick{font-size:12px}
+.tv{font-size:18px;font-weight:600}
+.tn{font-size:12px}
+.frame{fill:none;stroke:var(--border)}
+.track{fill:var(--grid)}
+.acc{fill:var(--accent)}
+.tk{stroke:var(--border);stroke-width:1}
+.fill{transform-box:fill-box;transform-origin:0 50%;animation:fill 10s infinite both}
+.count{animation:count 10s infinite both}
+@keyframes fill{0%,5%{transform:scaleX(0);opacity:1;animation-timing-function:linear}44.2%{transform:scaleX(1)}93%{opacity:1}100%{opacity:0;transform:scaleX(1)}}
+@keyframes count{0%{opacity:0;transform:translateY(4800px)}3%{opacity:1}5%{transform:translateY(4800px);animation-timing-function:steps(100,end)}44.2%{transform:none}93%{opacity:1}100%{opacity:0;transform:none}}
+.s0{animation:s0 10s infinite both}
+@keyframes s0{0%,45.2%{opacity:0;transform:translateY(6px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}51.2%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+.s1{animation:s1 10s infinite both}
+@keyframes s1{0%,46.4%{opacity:0;transform:translateY(6px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}52.4%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+.s2{animation:s2 10s infinite both}
+@keyframes s2{0%,47.6%{opacity:0;transform:translateY(6px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}53.6%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+.s3{animation:s3 10s infinite both}
+@keyframes s3{0%,48.8%{opacity:0;transform:translateY(6px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}54.8%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+.s4{animation:s4 10s infinite both}
+@keyframes s4{0%,50%{opacity:0;transform:translateY(6px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}56%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+.s5{animation:s5 10s infinite both}
+@keyframes s5{0%,51.2%{opacity:0;transform:translateY(6px);animation-timing-function:cubic-bezier(.25,.6,.3,1)}57.2%{opacity:1;transform:none}93%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<defs><clipPath id="win"><rect x="20" y="86" width="88" height="46"/></clipPath></defs>
+<rect class="card" x=".5" y=".5" width="799" height="371" rx="14"/>
+<text class="title" x="28" y="44">Measured with this CLI</text>
+<text class="lbl muted" x="28" y="68">One live run of jev.py batch: 500 items, 2 questions each, judged in parallel by 8 workers.</text>
+<g clip-path="url(#win)"><text class="big num count" text-anchor="end"><tspan x="100" y="-4678">0</tspan><tspan x="100" dy="48">5</tspan><tspan x="100" dy="48">10</tspan><tspan x="100" dy="48">15</tspan><tspan x="100" dy="48">20</tspan><tspan x="100" dy="48">25</tspan><tspan x="100" dy="48">30</tspan><tspan x="100" dy="48">35</tspan><tspan x="100" dy="48">40</tspan><tspan x="100" dy="48">45</tspan><tspan x="100" dy="48">50</tspan><tspan x="100" dy="48">55</tspan><tspan x="100" dy="48">60</tspan><tspan x="100" dy="48">65</tspan><tspan x="100" dy="48">70</tspan><tspan x="100" dy="48">75</tspan><tspan x="100" dy="48">80</tspan><tspan x="100" dy="48">85</tspan><tspan x="100" dy="48">90</tspan><tspan x="100" dy="48">95</tspan><tspan x="100" dy="48">100</tspan><tspan x="100" dy="48">105</tspan><tspan x="100" dy="48">110</tspan><tspan x="100" dy="48">115</tspan><tspan x="100" dy="48">120</tspan><tspan x="100" dy="48">125</tspan><tspan x="100" dy="48">130</tspan><tspan x="100" dy="48">135</tspan><tspan x="100" dy="48">140</tspan><tspan x="100" dy="48">145</tspan><tspan x="100" dy="48">150</tspan><tspan x="100" dy="48">155</tspan><tspan x="100" dy="48">160</tspan><tspan x="100" dy="48">165</tspan><tspan x="100" dy="48">170</tspan><tspan x="100" dy="48">175</tspan><tspan x="100" dy="48">180</tspan><tspan x="100" dy="48">185</tspan><tspan x="100" dy="48">190</tspan><tspan x="100" dy="48">195</tspan><tspan x="100" dy="48">200</tspan><tspan x="100" dy="48">205</tspan><tspan x="100" dy="48">210</tspan><tspan x="100" dy="48">215</tspan><tspan x="100" dy="48">220</tspan><tspan x="100" dy="48">225</tspan><tspan x="100" dy="48">230</tspan><tspan x="100" dy="48">235</tspan><tspan x="100" dy="48">240</tspan><tspan x="100" dy="48">245</tspan><tspan x="100" dy="48">250</tspan><tspan x="100" dy="48">255</tspan><tspan x="100" dy="48">260</tspan><tspan x="100" dy="48">265</tspan><tspan x="100" dy="48">270</tspan><tspan x="100" dy="48">275</tspan><tspan x="100" dy="48">280</tspan><tspan x="100" dy="48">285</tspan><tspan x="100" dy="48">290</tspan><tspan x="100" dy="48">295</tspan><tspan x="100" dy="48">300</tspan><tspan x="100" dy="48">305</tspan><tspan x="100" dy="48">310</tspan><tspan x="100" dy="48">315</tspan><tspan x="100" dy="48">320</tspan><tspan x="100" dy="48">325</tspan><tspan x="100" dy="48">330</tspan><tspan x="100" dy="48">335</tspan><tspan x="100" dy="48">340</tspan><tspan x="100" dy="48">345</tspan><tspan x="100" dy="48">350</tspan><tspan x="100" dy="48">355</tspan><tspan x="100" dy="48">360</tspan><tspan x="100" dy="48">365</tspan><tspan x="100" dy="48">370</tspan><tspan x="100" dy="48">375</tspan><tspan x="100" dy="48">380</tspan><tspan x="100" dy="48">385</tspan><tspan x="100" dy="48">390</tspan><tspan x="100" dy="48">395</tspan><tspan x="100" dy="48">400</tspan><tspan x="100" dy="48">405</tspan><tspan x="100" dy="48">410</tspan><tspan x="100" dy="48">415</tspan><tspan x="100" dy="48">420</tspan><tspan x="100" dy="48">425</tspan><tspan x="100" dy="48">430</tspan><tspan x="100" dy="48">435</tspan><tspan x="100" dy="48">440</tspan><tspan x="100" dy="48">445</tspan><tspan x="100" dy="48">450</tspan><tspan x="100" dy="48">455</tspan><tspan x="100" dy="48">460</tspan><tspan x="100" dy="48">465</tspan><tspan x="100" dy="48">470</tspan><tspan x="100" dy="48">475</tspan><tspan x="100" dy="48">480</tspan><tspan x="100" dy="48">485</tspan><tspan x="100" dy="48">490</tspan><tspan x="100" dy="48">495</tspan><tspan x="100" dy="48">500</tspan></text></g>
+<text class="unit" x="112" y="122">items judged</text>
+<text class="lbl muted" x="772" y="122" text-anchor="end">The bar runs at real speed</text>
+<rect class="track" x="28" y="136" width="744" height="12" rx="4"/>
+<rect class="acc fill" x="28" y="136" width="744" height="12" rx="4"/>
+<g><path class="tk" d="M28 151v5"/><path class="tk" d="M217.8 151v5"/><path class="tk" d="M407.6 151v5"/><path class="tk" d="M597.4 151v5"/><path class="tk" d="M772 151v5"/></g>
+<g><text class="tick num muted" x="28" y="170">0 s</text><text class="tick num muted" x="217.8" y="170" text-anchor="middle">1 s</text><text class="tick num muted" x="407.6" y="170" text-anchor="middle">2 s</text><text class="tick num muted" x="597.4" y="170" text-anchor="middle">3 s</text><text class="tick num muted" x="772" y="170" text-anchor="end">3.92 s</text></g>
+<rect class="frame" x="28.5" y="184.5" width="239" height="59" rx="10"/>
+<text class="lbl muted" x="42" y="206">Items judged</text>
+<g class="s0"><text class="tv num" x="42" y="231">500</text><text class="tn muted" x="254" y="206" text-anchor="end">2 questions each</text></g>
+<rect class="frame" x="280.5" y="184.5" width="239" height="59" rx="10"/>
+<text class="lbl muted" x="294" y="206">Requests</text>
+<g class="s1"><text class="tv num" x="294" y="231">13</text><text class="tn muted" x="506" y="206" text-anchor="end">up to 40 items, 0 errors</text></g>
+<rect class="frame" x="532.5" y="184.5" width="239" height="59" rx="10"/>
+<text class="lbl muted" x="546" y="206">Wall time</text>
+<g class="s2"><text class="tv num" x="546" y="231">3.92 s</text><text class="tn muted" x="758" y="206" text-anchor="end">8 workers, cache off</text></g>
+<rect class="frame" x="28.5" y="254.5" width="239" height="59" rx="10"/>
+<text class="lbl muted" x="42" y="276">Latency p50 / p95</text>
+<g class="s3"><text class="tv num" x="42" y="301">2279 / 2355 ms</text><text class="tn muted" x="254" y="276" text-anchor="end">13 requests</text></g>
+<rect class="frame" x="280.5" y="254.5" width="239" height="59" rx="10"/>
+<text class="lbl muted" x="294" y="276">Total cost</text>
+<g class="s4"><text class="tv num" x="294" y="301">$0.006094</text><text class="tn muted" x="506" y="276" text-anchor="end">145,106 input tokens</text></g>
+<rect class="frame" x="532.5" y="254.5" width="239" height="59" rx="10"/>
+<text class="lbl muted" x="546" y="276">Per 1,000 items</text>
+<g class="s5"><text class="tv num" x="546" y="301">$0.012188</text><text class="tn muted" x="758" y="276" text-anchor="end">total ÷ 500 × 1,000</text></g>
+<text class="cap" x="28" y="340">Source: benchmarks/results/2026-09-24.json · one live run on 2026-09-24, typesafe/jev-1.13-20260917 via OpenRouter, cost as reported</text>
+<text class="cap" x="28" y="356">Synthetic app-review-style items, one machine and network. Progress is drawn at an even rate over the measured wall time.</text>
+</svg>

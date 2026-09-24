@@ -1,0 +1,21 @@
+{
+  "name": "jev-funnel",
+  "version": "1.0.0",
+  "description": "Bulk-judge items with TypeSafe's Jev model, act on the confident answers in code, and send only the uncertain band to Claude or a human.",
+  "author": {
+    "name": "Shakibuzzaman",
+    "url": "https://github.com/Shakibuzzaman3104"
+  },
+  "homepage": "https://github.com/Shakibuzzaman3104/claude-jev-funnel",
+  "repository": "https://github.com/Shakibuzzaman3104/claude-jev-funnel",
+  "license": "Apache-2.0",
+  "keywords": [
+    "jev",
+    "typesafe",
+    "classification",
+    "triage",
+    "calibration",
+    "openrouter",
+    "skills"
+  ]
+}

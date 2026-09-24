@@ -1,0 +1,24 @@
+{
+  "name": "claude-jev-funnel",
+  "description": "Marketplace for the jev-funnel plugin.",
+  "owner": {
+    "name": "Shakibuzzaman",
+    "url": "https://github.com/Shakibuzzaman3104"
+  },
+  "plugins": [
+    {
+      "name": "jev-funnel",
+      "source": "./",
+      "description": "Bulk-judge items with TypeSafe's Jev model, act on the confident answers in code, and send only the uncertain band to Claude or a human.",
+      "category": "productivity",
+      "tags": [
+        "jev",
+        "typesafe",
+        "classification",
+        "triage",
+        "calibration",
+        "openrouter"
+      ]
+    }
+  ]
+}
