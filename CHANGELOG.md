@@ -7,6 +7,24 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- `skills/jev/references/agents.md`: using Jev inside loops that act (browser
+  agents, robots, drones, games, coding-agent guards). Covers rules first with
+  Jev as a reviewer (11/11 vs 10/11 on a robot arm), rebuilding the candidate
+  list every turn, never blocking on or applying a stale answer (sequence
+  numbers, staleness tags, deadlines), putting the deciding facts in state,
+  verifying "done" independently, restart-safe spend caps, using an LLM only for
+  typed text, harness-side memory, jev-claude's measured wording and threshold
+  lessons, and caveats on the official LangChain middleware and
+  fast-jev-compaction.
+- Question design: measured wording costs (direct vs compound vs padded
+  criteria), polarity, silent truncation, and caching per item under packing.
+- API notes: official Python SDK shapes (`Score(criteria=[...])`, `NoulAnswer`
+  has no confidence, `r.nouls`/`r.choices`/`r.scores`) and large question maps.
+- SKILL.md: one band for an answer's meaning, with risk deciding the action;
+  scores rarely reach their top level.
+
 ## [1.1.0] - 2026-09-25
 
 ### Added

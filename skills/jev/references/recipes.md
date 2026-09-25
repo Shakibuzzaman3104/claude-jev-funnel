@@ -351,6 +351,11 @@ step.
   consecutive 429/529s stop calling for 120 s; cache identical calls for 300 s — worst case
   ~2 × timeout + 2 s per tool call
   ([hermes-jev](https://github.com/DoGMaTiiC/hermes-jev), `plugins/jev-judge/README.md`).
+- **Cap refusals** so a gate can't trap the session (jev-claude: 2 per plan, 1 per
+  question set, 1 per command), and don't copy the official LangChain middleware's
+  defaults without deciding them (it sends 30 messages including tool output and fails
+  closed). More, including jev-claude's measured wording and threshold lessons:
+  `agents.md`, "Guarding a coding agent's own decisions".
 - Check which key a hook tool reads before wiring it up: most community hook tools read
   `TYPESAFE_API_KEY`, not `OPENROUTER_API_KEY`.
 - Don't build a skill router this way — see SKILL.md's "where it doesn't help" (under

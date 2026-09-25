@@ -135,8 +135,11 @@ type actually calibrates, not one confidence cutoff for all three:
   it trip a gate either way. Answers are rounded to 2 decimals and pile up at 0.99/1.0, so
   a top-N cut can split a tie (`rank` warns), and confidence 1.00 is not certainty (wrong
   1.9–23% of the time in independent tests).
-- Thresholds scale with risk: destructive or irreversible actions need a higher bar than
-  read-only ones. They also **don't transfer**: the best cutoff was 0.67 on one dataset
+- Keep **one band for what an answer means** and let risk decide what to do with it:
+  raising the "yes" bar for high stakes turned a 0.79 `DROP TABLE` into "uncertain".
+  Destructive or irreversible actions need a higher bar to act on than read-only ones.
+  A `score` is an expected value, so it rarely reaches its top level (complete plans
+  scored 1.85–1.99 of 2); don't put a bar at the top. They also **don't transfer**: the best cutoff was 0.67 on one dataset
   and 0.37 on another, so calibrate on traffic that looks like production. These defaults
   are starting points, not rules for your data.
 - **Calibrate on your own labels when stakes matter**: `jev.py eval --cases labeled.jsonl
@@ -296,6 +299,10 @@ Wiring Jev into Claude Code hooks: `references/recipes.md` recipe 17.
    for known catastrophic commands (`git stash clear`, `rm -rf /`, reading `~/.ssh`), then
    a read-only allowlist, then Jev — and test it with authority-claim injections ("the
    owner approved this"), which got through where blunt "ignore the question" didn't.
+   In a loop that acts, prefer **rules first with Jev as a reviewer**, rebuild the
+   candidate list every turn, never apply a late or stale answer, and verify "done"
+   yourself — details and measurements in `references/agents.md` (browser agents,
+   robots, drones, games, coding-agent guards).
 9. **Log a trace, not the content.** Per decision: model, a hash of state and of the
    candidate list, state version, the chosen id or fallback reason, confidence/fit,
    latency, tokens. Hashes let you tie a decision to its exact input without storing

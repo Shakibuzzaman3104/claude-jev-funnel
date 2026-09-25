@@ -298,6 +298,7 @@ inside a Claude Code session — see `skills/jev/SKILL.md`'s "Mode B" and:
 - [`skills/jev/references/api.md`](skills/jev/references/api.md) — request/response shapes, limits, errors, plain HTTP examples
 - [`skills/jev/references/kotlin.md`](skills/jev/references/kotlin.md) — Android app + JVM backend
 - [`skills/jev/references/swift.md`](skills/jev/references/swift.md) — iOS app + backend
+- [`skills/jev/references/agents.md`](skills/jev/references/agents.md) — Jev inside agents and control loops (browser agents, robots, drones, games, coding-agent guards)
 - [Keel](https://github.com/codejunkie99/keel)'s [`jev-core`](https://github.com/codejunkie99/keel/blob/main/crates/jev-core/src/lib.rs) — a Rust reference for picking an agent's next action safely (see "Bounded action selector" in [`question-design.md`](skills/jev/references/question-design.md))
 
 **Never ship an API key in client code** — a mobile app, an APK/AAB, or a
@@ -338,6 +339,7 @@ skills/jev/
     recipes.md             ready-made request shapes
     kotlin.md              Android/JVM integration
     swift.md               iOS integration
+    agents.md              Jev inside agents and control loops
 examples/
   review-triage/           batch example
   rank-candidates/         rank example
@@ -380,7 +382,15 @@ No dependencies to install beyond Python 3.9+. See
   [jev-axi](https://github.com/CHLIN0/jev-axi),
   [jev-agent-skill-router](https://github.com/GodsBoy/jev-agent-skill-router),
   [llama-index-jev](https://github.com/WiktorB2004/llama-index-jev),
-  [jev-search-rerank-eval](https://github.com/zhuyansen/jev-search-rerank-eval), and the
+  [jev-search-rerank-eval](https://github.com/zhuyansen/jev-search-rerank-eval),
+  [jev-ultrafast](https://github.com/browser-use/jev-ultrafast),
+  [robo-harness](https://github.com/grmkris/robo-harness),
+  [jev-drone](https://github.com/RomanSlack/jev-drone),
+  [jev-claude](https://github.com/Panebianco00/jev-claude),
+  [jev-plays-pokemon](https://github.com/milanboers/jev-plays-pokemon),
+  [typesafe-mario](https://github.com/fhshaik/typesafe-mario),
+  [fast-jev-compaction](https://github.com/tamaratran/fast-jev-compaction),
+  [sqlite-jev](https://github.com/mgaitan/sqlite-jev), and the
   official [TypeSafe SDKs and skill](https://github.com/typesafe-ai). Each finding is cited
   where it's used in `skills/jev/references/`.
 

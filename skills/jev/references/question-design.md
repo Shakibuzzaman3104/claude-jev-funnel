@@ -74,6 +74,17 @@ items, citing this same measurement.
 - Multi-label ("which of these apply") → one noul per label, not a choice.
 - "Which one" among competing options → choice. Choice is relative (always picks a
   winner); add a noul or a `none` option if "none of them" is a real outcome.
+- **Ask the one thing, directly; don't pad criteria.** On the same `DROP TABLE`, a
+  compound question scored 0.89, the same with boilerplate criteria restating it 0.81, and
+  "Does the command in `command` destroy stored data?" 0.98
+  ([jev-claude](https://github.com/Panebianco00/jev-claude), `docs/DESIGN.md`). Criteria
+  should add boundary cases, not repeat the question.
+- **Point the polarity so safe or irrelevant cases land on the harmless answer.** "Is there
+  a way to put things back?" answered "no" for `git status`; "unrestorable change" scored
+  read-only commands 0.02–0.11 and an unbacked `DROP` 0.94 (same source).
+- **Never truncate state silently.** A 4,000-character cap showed Jev a third of a 13 KB
+  plan and settled decisions read as contradicted (0.11, 0.24); a 24k cap fixed it (same
+  source). Trim deliberately, and say in state what was left out.
 - **Ask the positive condition you act on.** "Was this value quoted from the revision
   history as superseded?" scored 0.77 on the *correct* value, because that value appears
   in both the in-force note and the revision line; "Is this value currently in force?"
@@ -163,6 +174,14 @@ Rules for turning several typed answers into one decision:
   deviation of `0.0102` — tighter than every sampled LLM condition in the same test.
   Repeat-and-vote on a noul isn't buying you much.
   ([consistency_noul_cookbook](https://docs.typesafe.ai/cookbooks/consistency_noul_cookbook))
+- **Cache per item only when each item was asked in isolation or by a stable key.**
+  Packing changes answers (see "Many rows in one state" above), so an answer cached by the
+  item's content alone may not reproduce when the item is batched with different
+  neighbours — the pattern [sqlite-jev](https://github.com/mgaitan/sqlite-jev) uses
+  (`src/jev.c`: 40 rows per request addressed as `rows[%d]`, cache keyed by row content).
+  `jev.py` caches per item too (keyed by model, pack mode, template and the item, with
+  keyed ids rather than positions); when neighbours could matter for your question, run
+  with `--per-request 1`, or `--no-cache` to force fresh answers.
 - **There is no server-side cache.** The same state and questions sent twice are billed in
   full both times — PrimeLine measured this directly (3 identical calls, 2,838 tokens each,
   no discount). `jev.py batch`'s local cache (sha256 of model + pack + template + payload)
@@ -403,6 +422,11 @@ executing. The selector's answer is a suggestion, never an authorization; anythi
 needed user approval still needs it. Every failed gate falls back to the normal path
 (the agent's own loop, a default, a human) with a named reason.
 ([Keel](https://github.com/codejunkie99/keel/blob/main/docs/decision-architecture.md))
+
+In a loop that acts (a browser agent, a robot, a game), the loop around this call matters
+as much as the call: rules first with Jev as a reviewer beat Jev choosing every step 11/11
+to 10/11 on a robot arm, and a stale or late answer must never be applied. See
+`agents.md`.
 
 **Cascade.** Jev first for the cheap, confident majority; escalate uncertain cases to an LLM
 that must pick from the same labels.

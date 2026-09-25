@@ -200,6 +200,17 @@ Keep the slug in config and re-check thresholds before moving to a new version.
 | 5xx | Server error | Backoff, limited attempts |
 | 3xx | A redirect | Don't follow it: the redirected request would carry your `Authorization` header to another host. Treat as a configuration error |
 
+Official Python SDK shapes, for reading or porting examples (`typesafe_sdk`,
+`_core/question_types.py`, `response_types.py`): `Score(criteria=[...])` takes an ordered,
+non-empty list and **rejects `legend=`** (models forbid extra fields — blog examples passing
+`legend` won't run); `legend` exists only on the answer, keyed by int, as are its
+`probabilities`. `NoulAnswer` has only `type` and `noul` — **no `.confidence` or `.p`**.
+A response has `.model`, `.usage` and `.answers`, plus `r.nouls`, `r.choices` and
+`r.scores`, each keyed by question id. Choice criteria values may be `None` (an undescribed
+label). Large question maps are accepted: 1,000 questions in one request
+([jev-fanout-bench](https://github.com/blowxian/jev-fanout-bench)), 1,024 in
+[jevinci](https://github.com/achimala/jevinci).
+
 What the official SDKs do (`typesafe-sdk` 0.7.1, `@typesafe-ai/sdk` 0.6.0): retry 408,
 429 and 5xx twice, backoff from 0.5 s doubling to a 5 s cap with 25% jitter, 10 s timeout
 per attempt; Python caps the whole call at 30 s of retrying, and JS ignores a
