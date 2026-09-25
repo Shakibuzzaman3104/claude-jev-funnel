@@ -1,6 +1,6 @@
 {
   "name": "jev-funnel",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Bulk-judge items with TypeSafe's Jev model, act on the confident answers in code, and send only the uncertain band to Claude or a human.",
   "author": {
     "name": "Shakibuzzaman",

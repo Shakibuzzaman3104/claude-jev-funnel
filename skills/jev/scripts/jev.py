@@ -40,7 +40,7 @@ Exit codes: 0 ok, 2 bad input or lint error, 3 auth/credit, 4 API/network, 5 par
 (or a single request with a missing or invalid answer).
 """
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 import argparse
 import collections

@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-25
+
 ### Added
 
 - `skills/jev/references/agents.md`: using Jev inside loops that act (browser
@@ -103,6 +105,7 @@ First public release.
 - A reproducible live throughput benchmark (`benchmarks/`) and README
   diagrams (`docs/assets/`).
 
-[Unreleased]: https://github.com/Shakibuzzaman3104/claude-jev-funnel/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Shakibuzzaman3104/claude-jev-funnel/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/Shakibuzzaman3104/claude-jev-funnel/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Shakibuzzaman3104/claude-jev-funnel/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Shakibuzzaman3104/claude-jev-funnel/releases/tag/v1.0.0
