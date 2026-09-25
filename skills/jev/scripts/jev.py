@@ -46,6 +46,7 @@ import argparse
 import collections
 import concurrent.futures
 import datetime
+import email.utils
 import hashlib
 import http.client
 import json
@@ -88,9 +89,12 @@ MAX_CHOICE_OPTIONS = 255
 MIN_SCORE_LEVELS, MAX_SCORE_LEVELS = 2, 10
 LARGE_STATE_TOKENS = 8_000
 POSITIONAL_LIST_LIMIT = 5
-RETRYABLE_STATUSES = {429, 500, 502, 503, 504, 529}
+RETRYABLE_STATUSES = {408, 429, 500, 502, 503, 504, 529}
 MAX_ATTEMPTS = 5
 TIMEOUT_SECONDS = 30
+MAX_RETRY_AFTER_SECONDS = 60.0  # a longer server-requested wait falls back to normal backoff
+MAX_RESPONSE_BYTES = 8 * 1024 * 1024  # a decisions body is kilobytes; refuse anything absurd
+REQUEST_ID_HEADER = "x-typesafe-request-id"
 
 PACK_TARGET = 0.8  # share of the provider limits a packed request aims for
 DEFAULT_PER_REQUEST = 40
@@ -227,10 +231,17 @@ def parse_json_or_text(raw):
         return raw
 
 
+def is_wide_char(char):
+    """CJK, kana and Hangul: about one token per character, not four."""
+    code = ord(char)
+    return 0x2E80 <= code <= 0x9FFF or 0xAC00 <= code <= 0xD7AF or 0xF900 <= code <= 0xFAFF
+
+
 def estimate_tokens(obj):
-    """Rough token count: ~4 characters per token."""
+    """Rough token count: ~4 characters per token, ~1 per CJK/Hangul character."""
     text = obj if isinstance(obj, str) else json.dumps(obj, ensure_ascii=False)
-    return max(1, len(text) // 4)
+    wide = sum(1 for char in text if is_wide_char(char)) if not text.isascii() else 0
+    return max(1, (len(text) - wide) // 4 + wide)
 
 
 def canonical_json(value):
@@ -674,22 +685,90 @@ def build_headers(provider_name, api_key):
     return headers
 
 
-def backoff_delay(attempt, retry_after):
-    """Seconds to wait before the next attempt."""
-    if retry_after:
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse redirects: following one would resend the Authorization header elsewhere."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+HTTP_OPENER = urllib.request.build_opener(NoRedirect)
+
+
+def http_open(request, timeout):
+    """Open a request without following redirects (3xx surfaces as HTTPError)."""
+    return HTTP_OPENER.open(request, timeout=timeout)
+
+
+def read_capped(response):
+    """Response body, or ApiError when it is larger than MAX_RESPONSE_BYTES."""
+    raw = response.read(MAX_RESPONSE_BYTES + 1)
+    if len(raw) > MAX_RESPONSE_BYTES:
+        raise ApiError(f"response larger than {MAX_RESPONSE_BYTES} bytes; refusing to read it",
+                       getattr(response, "status", None), 4, False)
+    return raw
+
+
+def retry_after_seconds(headers):
+    """Server-requested wait from retry-after-ms or retry-after (seconds or HTTP date), or None."""
+    if not headers:
+        return None
+    value = headers.get("retry-after-ms")
+    if value:
         try:
-            return min(60.0, float(retry_after))
+            return max(0.0, float(value) / 1000)
         except ValueError:
             pass
+    value = headers.get("retry-after")
+    if not value:
+        return None
+    try:
+        return max(0.0, float(value))
+    except ValueError:
+        pass
+    try:
+        when = email.utils.parsedate_to_datetime(value)
+    except (TypeError, ValueError, IndexError):
+        return None
+    if when is None:
+        return None
+    return max(0.0, when.timestamp() - time.time())
+
+
+def backoff_delay(attempt, retry_after):
+    """Seconds to wait before the next attempt; retry_after is seconds or None."""
+    if retry_after is not None and retry_after <= MAX_RETRY_AFTER_SECONDS:
+        return float(retry_after)
     return min(30.0, (2 ** (attempt - 1)) + random.uniform(0, 0.5))
 
 
-def read_error_detail(error):
-    """First part of an HTTP error body."""
+def format_validation_detail(text):
+    """'loc: msg' lines for a FastAPI-style 422 body, else the text unchanged."""
     try:
-        return error.read().decode("utf-8", errors="replace")[:1000]
+        detail = json.loads(text).get("detail")
+    except (ValueError, AttributeError):
+        return text
+    if not isinstance(detail, list):
+        return text
+    parts = []
+    for entry in detail[:10]:
+        if isinstance(entry, dict):
+            location = ".".join(str(part) for part in entry.get("loc") or [] if part != "body")
+            parts.append(f"{location}: {entry.get('msg')}" if location else str(entry.get("msg")))
+    return "; ".join(parts) or text
+
+
+def read_error_detail(error):
+    """First part of an HTTP error body, validation errors as 'loc: msg', plus the request id."""
+    try:
+        text = error.read(64 * 1024).decode("utf-8", errors="replace")
     except (OSError, http.client.HTTPException):
-        return ""
+        text = ""
+    text = format_validation_detail(text)[:1000]
+    request_id = error.headers.get(REQUEST_ID_HEADER) if error.headers else None
+    if request_id:
+        text = f"{text} (request id {request_id})" if text else f"request id {request_id}"
+    return text
 
 
 def api_error_for(status, detail, key_env):
@@ -703,6 +782,11 @@ def api_error_for(status, detail, key_env):
         return ApiError(f"403 Forbidden (key limits, moderation, or network policy){detail}", status, 3, True)
     if status == 404:
         return ApiError(f"404 Not Found (check the model slug and endpoint){detail}", status, 2, True)
+    if status == 400 and "unknown model" in detail.lower():
+        return ApiError(f"400 Unknown model (check the model slug; retired pins return this){detail}",
+                        status, 2, True)
+    if 300 <= status < 400:
+        return ApiError(f"HTTP {status} redirect refused (check the endpoint URL){detail}", status, 4, True)
     if status in (400, 422):
         return ApiError(f"HTTP {status} (request rejected){detail}", status, 2, False)
     return ApiError(f"HTTP {status}{detail}", status, 4, False)
@@ -724,9 +808,9 @@ def post_with_retries(url, body, headers, key_env, on_attempt=None):
         request = urllib.request.Request(url, data=payload, method="POST", headers=headers)
         retry_after = None
         try:
-            with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            with http_open(request, timeout=TIMEOUT_SECONDS) as response:
                 status = response.status
-                raw = response.read()
+                raw = read_capped(response)
             try:
                 parsed = json.loads(raw.decode("utf-8"))
             except ValueError:
@@ -741,7 +825,7 @@ def post_with_retries(url, body, headers, key_env, on_attempt=None):
             if error.code not in RETRYABLE_STATUSES:
                 raise api_error_for(error.code, read_error_detail(error), key_env)
             last_error = f"HTTP {error.code}"
-            retry_after = error.headers.get("retry-after") if error.headers else None
+            retry_after = retry_after_seconds(error.headers)
         except (OSError, http.client.HTTPException) as error:
             notify(on_attempt, "network", None, elapsed_ms(attempt_started))
             last_error = f"network error: {error}"
@@ -1883,6 +1967,11 @@ def run_rank(argv):
         ranked = [entry for entry in ranked if entry[0] >= args.min]
 
     shown = ranked[:args.top]
+    if len(ranked) > args.top and ranked[args.top - 1][0] == ranked[args.top][0]:
+        tied = sum(1 for entry in ranked if entry[0] == ranked[args.top][0])
+        warn(f"--top {args.top} cuts through a tie: {tied} items share p={ranked[args.top][0]:.2f} "
+             "(answers are rounded); the cut among them is arbitrary. Widen --top or break the tie "
+             "with a second question")
     id_width = min(24, max([len(str(entry[2].id)) for entry in shown] + [2]))
     print(f"{'rank':>4}  {'p':<4}  {'band':<9}  {'id':<{id_width}}  preview")
     for position, (p, band, item) in enumerate(shown, 1):
@@ -2237,12 +2326,12 @@ def fetch_openrouter_credit(api_key):
     request = urllib.request.Request(OPENROUTER_KEY_INFO_URL, headers={
         "Authorization": f"Bearer {api_key}", "Accept": "application/json", "User-Agent": USER_AGENT})
     try:
-        with urllib.request.urlopen(request, timeout=10) as response:
+        with http_open(request, timeout=10) as response:
             if response.status != 200:
                 return None
-            data = json.loads(response.read().decode("utf-8")).get("data") or {}
+            data = json.loads(read_capped(response).decode("utf-8")).get("data") or {}
         usage, remaining = data.get("usage"), data.get("limit_remaining")
-    except (OSError, ValueError, AttributeError, http.client.HTTPException):
+    except (OSError, ValueError, AttributeError, http.client.HTTPException, ApiError):
         return None
 
     def money(value):

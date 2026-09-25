@@ -45,7 +45,8 @@ X-Title: <your site name>          (optional, for OpenRouter rankings)
 
 ## Question shapes
 
-All questions have `type` and `instructions`. `instructions` may be a string, object or
+Give every question `type` and `instructions` (the API schema makes `instructions`
+optional, but a question without one is ambiguous; `jev.py` requires it). `instructions` may be a string, object or
 array. Use an object to carry data the question refers to:
 
 ```json
@@ -77,7 +78,7 @@ array. Use an object to carry data the question refers to:
 `criteria` maps option → description (string/object/array) or `null`. Always give a
 no-match option — see the skill's `SKILL.md` for what happens without one.
 
-### score (ordered rubric, 2–10 levels, lowest first)
+### score (ordered rubric, 2–10 levels, lowest first — the API accepts 1+; 2–10 is the convention jev.py and other clients enforce)
 
 ```json
 {"type": "score",
@@ -92,7 +93,7 @@ copied from before that date will fail.
 
 ```json
 {
-  "model": "typesafe/jev-1.13",
+  "model": "typesafe/jev-1.13-20260917",
   "answers": {
     "is_refund":  {"type": "noul", "noul": 0.95},
     "department": {"type": "choice", "choice": "billing", "confidence": 0.81,
@@ -109,6 +110,11 @@ copied from before that date will fail.
 - `choice`: top option, full distribution (sums to 1), `confidence` from its shape.
 - `score`: probability-weighted level index (may be fractional), per-level distribution,
   `legend` mapping index → description, `confidence`.
+- `model`: the **dated snapshot** that answered, not the alias you sent — a request for
+  `typesafe/jev-1.13` comes back as `typesafe/jev-1.13-20260917` (thousands of logged
+  responses in [jev-certify](https://github.com/nikkoxgonzales/jev-certify) and
+  [jev-fanout-bench](https://github.com/blowxian/jev-fanout-bench); the official OpenAPI
+  says it "may differ from the alias supplied"). Log it; compare with a prefix match.
 - `usage.cost`: USD cost of that call, in **every** OpenRouter Jev response. Use it
   directly instead of estimating from the per-token list price.
 - Log `model` from every response so results can be traced to a model version.
@@ -126,8 +132,11 @@ import math
 def is_p(x):
     return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x) and 0 <= x <= 1
 
+def same_model(pinned, returned):  # "typesafe/jev-1.13" matches "typesafe/jev-1.13-20260917"
+    return returned == pinned or (returned or "").startswith(pinned + "-")
+
 def answer_ok(question, answer, pinned_model, response_model):
-    if response_model != pinned_model or answer.get("type") != question["type"]:
+    if not same_model(pinned_model, response_model) or answer.get("type") != question["type"]:
         return False
     if question["type"] == "noul":
         return is_p(answer.get("noul"))
@@ -147,7 +156,8 @@ def answer_ok(question, answer, pinned_model, response_model):
 
 The checks that matter most: the `choice` is one of the options you offered (an invented
 id must never reach a dispatcher), the distribution sums to 1, the chosen option is the
-most probable one, and the response `model` is the slug you pinned. Also cap the response
+most probable one, and the response `model` is the slug you pinned or a dated snapshot of
+it (an exact-match check rejects every live response). Also cap the response
 size you'll read and disable HTTP redirects on the client, so a misrouted call can't
 hand you someone else's body. Keel's Rust client is a complete example of these checks
 ([`jev-core`](https://github.com/codejunkie99/keel/blob/main/crates/jev-core/src/lib.rs)).
@@ -159,7 +169,7 @@ Limits differ by route — use the one for the transport you're actually calling
 | | OpenRouter (default) | TypeSafe direct |
 | --- | --- | --- |
 | Slug | `typesafe/jev-1.13` (dated; `~typesafe/jev-latest` also resolves) | `jev-1.13.0` (or the floating `jev-latest`) |
-| Context | **32,000 tokens, state + all questions combined** | 64,000 tokens total; 32,000 for state + the single longest question |
+| Context | **32,000 tokens, state + all questions combined** (OpenRouter's documented limit; bisection probes through its `/api/v1/systemone` passthrough accepted the direct-route limits, 64k total / 32k state + longest question, with 1,000 questions in one call — [jev-fanout-bench](https://github.com/blowxian/jev-fanout-bench) round 2 E2 — but `/alpha/decisions` wasn't probed, so `jev.py` keeps 32k) | 64,000 tokens total; 32,000 for state + the single longest question |
 | Rate limits | Set by OpenRouter for your key/credit | 250,000 tokens/sec, 1,200 requests/minute — TypeSafe's own docs say these "can change without notice" while demand is high |
 | Price | TypeSafe list ~$0.042 per million **input** tokens, output free; OpenRouter's exact charge is in `usage.cost` on every response | Same list price; no per-call cost field, no balance/usage endpoint — track spend yourself |
 
@@ -168,7 +178,8 @@ Other constants, both routes:
 | | |
 | --- | --- |
 | Input | Text only (string, JSON object, array of text). Convert images/binaries first — sending one returns HTTP 200 with maximal uncertainty (0.5), not an error. |
-| Language | English best; others work but check confidence carefully |
+| Language | English best. The state's language is what matters: Korean state cost 6.5 accuracy points, Russian 77.3% vs 88.3% on paired XNLI ([jev-cyrillic-audit](https://github.com/AHTOOOXA/jev-cyrillic-audit)); keep questions in English (see question-design.md, "Known weak spots") |
+| Billing | Measured per request: ~261 tokens fixed overhead (not counted toward the context limits), ~8 per question, ~8 per choice option (~21 with a description), ~8 per score level; `usage.cost` = tokens × $0.042/M exactly. Characters per token: English ~4.9, Korean ~1.4, Chinese/Japanese ~1.0 ([jev-fanout-bench](https://github.com/blowxian/jev-fanout-bench) round 2). `jev.py` estimates CJK/Hangul at one token per character |
 | Latency | One 13-question request took 0.27 s in TypeSafe's [parallel_questions](https://docs.typesafe.ai/cookbooks/parallel_questions) cookbook; a packed 40-item batch request took ~2.3 s p50 in this project's [live benchmark](https://github.com/Shakibuzzaman3104/claude-jev-funnel/tree/main/benchmarks). `doctor` and `batch` print measured latency. |
 | Data | TypeSafe doesn't train on requests; OpenRouter's own data policy also applies. |
 
@@ -178,14 +189,31 @@ Keep the slug in config and re-check thresholds before moving to a new version.
 
 | Status | Meaning | Do |
 | --- | --- | --- |
-| 400 / 404 | Bad body or unknown model slug / moved endpoint | Fix; don't retry |
+| 400 / 404 | Bad body; `400 Unknown model: …` for an unknown or retired pin on TypeSafe direct (e.g. `jev-1.12`); 404 for a moved endpoint or unknown slug on OpenRouter | Fix; don't retry |
 | 401 | Missing/invalid key | Fix config; don't retry |
 | 402 | OpenRouter account out of credit | Add credit; don't retry |
 | 403 | Key limit reached, moderation, or network policy | Fix the key or its limits; don't retry |
-| 422 | Body failed validation; body names the field | Fix the request; don't retry |
-| 429 | Rate limited | Exponential backoff; honour `retry-after` |
+| 422 | Body failed validation: `{"detail": [{"loc": [...], "msg": ..., "type": ...}]}` — join `loc` to find the field (e.g. `questions.q.score.criteria.0`) | Fix the request; don't retry |
+| 408 | Request timeout | Retry with backoff |
+| 429 | Rate limited | Exponential backoff; honour `retry-after-ms`, then `retry-after` (seconds or an HTTP date) |
 | 529 | Overloaded | Exponential backoff |
 | 5xx | Server error | Backoff, limited attempts |
+| 3xx | A redirect | Don't follow it: the redirected request would carry your `Authorization` header to another host. Treat as a configuration error |
+
+What the official SDKs do (`typesafe-sdk` 0.7.1, `@typesafe-ai/sdk` 0.6.0): retry 408,
+429 and 5xx twice, backoff from 0.5 s doubling to a 5 s cap with 25% jitter, 10 s timeout
+per attempt; Python caps the whole call at 30 s of retrying, and JS ignores a
+server-requested wait above 60 s and uses normal backoff. Both default to the floating
+`jev-latest`, so pass `model` explicitly. Every response carries an
+`x-typesafe-request-id` (`req_…`) header — put it in error logs and support tickets
+(`jev.py` appends it to error messages). `GET /v1/models` on the direct route lists
+`{name, description, release_date}` and is a cheap way to check a key or a pin.
+
+On a live path, add a circuit breaker on top of retries: one production gate retries once
+and only when `retry-after` ≤ 2 s, stops calling for 120 s after 3 consecutive 429/529s,
+spaces calls 0.25 s apart and caches identical calls for 300 s, bounding a call's worst
+case at about 2 × timeout + 2 s ([hermes-jev](https://github.com/DoGMaTiiC/hermes-jev),
+`plugins/jev-judge/README.md`).
 
 ## Python and JavaScript examples
 

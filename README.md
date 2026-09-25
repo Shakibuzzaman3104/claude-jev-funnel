@@ -368,6 +368,21 @@ No dependencies to install beyond Python 3.9+. See
 - Positional references: <https://gist.github.com/pedramamini/014676fa8684d91bf7000f4623701ada>
 - Prompt injection moving a verdict: <https://venturebeat.com/security/companies-are-putting-jev-in-charge-of-ai-agent-decisions-and-prompt-injection-can-influence-the-verdict>
 - Bounded action selection and fail-closed response checks: [Keel](https://github.com/codejunkie99/keel) by [@codejunkie99](https://github.com/codejunkie99)
+- Community evaluations and clients the skill draws measured findings from, including
+  [jev-engineering](https://github.com/eugeniughelbur/jev-engineering) (injection test),
+  [jev-calibration-audit](https://github.com/jujumilk3/jev-calibration-audit),
+  [jev-fanout-bench](https://github.com/blowxian/jev-fanout-bench),
+  [jev-orderby-bench](https://github.com/yodablocks/jev-orderby-bench),
+  [jev-certify](https://github.com/nikkoxgonzales/jev-certify),
+  [jev-ood-calibration](https://github.com/scienthoon/jev-ood-calibration),
+  [jev-does-not-play-dice](https://github.com/KantaHayashiAI/jev-does-not-play-dice),
+  [hermes-jev](https://github.com/DoGMaTiiC/hermes-jev),
+  [jev-axi](https://github.com/CHLIN0/jev-axi),
+  [jev-agent-skill-router](https://github.com/GodsBoy/jev-agent-skill-router),
+  [llama-index-jev](https://github.com/WiktorB2004/llama-index-jev),
+  [jev-search-rerank-eval](https://github.com/zhuyansen/jev-search-rerank-eval), and the
+  official [TypeSafe SDKs and skill](https://github.com/typesafe-ai). Each finding is cited
+  where it's used in `skills/jev/references/`.
 
 More links, including per-recipe sources, are in
 [`skills/jev/references/recipes.md`](skills/jev/references/recipes.md) and
@@ -382,6 +397,10 @@ traces, are adapted from [Keel](https://github.com/codejunkie99/keel) by
 [`jev-core`](https://github.com/codejunkie99/keel/tree/main/crates/jev-core)
 crate and [decision architecture](https://github.com/codejunkie99/keel/blob/main/docs/decision-architecture.md).
 Thanks to its author for publishing it. This project is not affiliated with Keel.
+
+The skill's measured guidance also draws on the community evaluations and clients listed
+under [Sources & further reading](#sources--further-reading); each is cited where it's
+used. Thanks to everyone who published raw data and negative results.
 
 ## Disclaimer
 

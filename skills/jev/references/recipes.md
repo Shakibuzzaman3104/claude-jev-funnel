@@ -255,6 +255,14 @@ Act: merge auto-proceeds only at `ready` with `p_max ≥ 0.8`; every other outco
 including low confidence on `ready` — blocks and needs a human approval. Fail closed:
 an API error or a lint failure is also a block, never a silent pass.
 
+Running it in GitHub Actions on pull requests from forks
+([fatwang2/awesome-jev](https://github.com/fatwang2/awesome-jev), `.github/jev-review.json`
+and its workflow): trigger on `pull_request_target` so the key is available, but check out
+the **base** SHA with `persist-credentials: false` and read the PR's diff as data — never
+execute the PR's code in a job that holds the key. Give each noul its own accept/reject
+pair (there: 0.85/0.2 and 0.8/0.2) with a human for the middle, and fall back across
+routes (TypeSafe → Vercel → Cloudflare) so one provider outage doesn't block every PR.
+
 ## 13. Content curation funnel
 
 A mine → screen → review pipeline for any content pool (articles, snippets, support
@@ -318,6 +326,31 @@ step.
 - **Strip anything the agent fetched** (a page, an issue, a tool result) out of any state
   that authorizes an action — injected text moved a destructive-command gate from 0.76
   to 0.48 in one measured test.
+- **Use a hook, not an MCP tool, for safety.** A hook runs on every call; an MCP tool
+  runs only when the model decides to call it.
+  ([jev-engineering](https://github.com/eugeniughelbur/jev-engineering), `recipes/README.md`)
+- **Order: deny rules → read-only allowlist → Jev.** Deny first, because
+  `cat ~/.ssh/id_ed25519` starts with an allowlisted `cat`. Catastrophic, well-known
+  commands (`git stash clear` flipped to allow under every authority-claim injection in a
+  300-call test) go in the deny regex, not the probability. (Same repo, README "How it
+  decides" and `tests/test_order.py`.)
+- **Gate state = the latest user message + the proposed command. Nothing else.** Leave
+  out the agent's reasoning and earlier tool output, "or the agent can write its own
+  permission slip" (same repo, `jev_gate.py` `build_state`). When the command runs a
+  local script (`./deploy.sh`), put the script's text in state (capped) — otherwise the
+  gate judges an opaque name ([jev-axi](https://github.com/CHLIN0/jev-axi), `src/safety.ts`).
+- **Redacting secrets hides them from the gate too**, so detect credential reads or
+  exfiltration with local pattern checks, not with Jev (jev-axi `findPossibleSecrets`).
+- **"Allow" should print nothing.** Let the harness's normal permission prompt handle
+  anything the gate doesn't deny or escalate; the gate never auto-approves. jev-axi's
+  cutoffs, as a starting point: deny at p ≥ 0.8 on a blocking hazard, ask at ≥ 0.45 or a
+  risk score ≥ 1.5 on a 0–2 scale.
+- **Fail open or closed by blast radius**: fail open for a local coding agent, closed
+  (escalate to a person) for money, email or production.
+- **Budget the latency.** Retry once and only when `retry-after` ≤ 2 s; after 3
+  consecutive 429/529s stop calling for 120 s; cache identical calls for 300 s — worst case
+  ~2 × timeout + 2 s per tool call
+  ([hermes-jev](https://github.com/DoGMaTiiC/hermes-jev), `plugins/jev-judge/README.md`).
 - Check which key a hook tool reads before wiring it up: most community hook tools read
   `TYPESAFE_API_KEY`, not `OPENROUTER_API_KEY`.
 - Don't build a skill router this way — see SKILL.md's "where it doesn't help" (under

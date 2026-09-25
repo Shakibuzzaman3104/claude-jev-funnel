@@ -28,7 +28,8 @@ The default route is **OpenRouter**; TypeSafe direct also works (`--provider typ
   optional `HTTP-Referer` (site URL) and `X-Title` (site name) for OpenRouter rankings.
 - Model: `typesafe/jev-1.13` — pin it. A floating alias exists (`~typesafe/jev-latest`,
   with the tilde — without it, it doesn't resolve here) but move to it deliberately.
-  TypeSafe's direct route pins the fuller `jev-1.13.0`.
+  TypeSafe's direct route pins the fuller `jev-1.13.0`. Responses name the dated snapshot
+  that answered (`typesafe/jev-1.13-20260917`): log it, and match your pin by prefix.
 - Context: **32,000 tokens for state + all questions combined** on this route (TypeSafe
   direct differs: 64k total, 32k for state + the single longest question). The bundled
   script enforces the limit for whichever route it's actually calling.
@@ -130,8 +131,14 @@ type actually calibrates, not one confidence cutoff for all three:
 | choice | `p_max` (top probability) | `ACT` ≥0.8 · `REVIEW` 0.5–0.8 · `ABSTAIN` <0.5 | `confidence` is a fixed function of `p_max` and option count, `C=(N·p_max−1)/(N−1)` — the same cutoff means a different `p_max` for 3 options than for 15. Show `p_max` and the margin to the runner-up: `choice  conf=  p=  margin=  next=` |
 | score | `confidence` | `CONFIDENT` ≥0.8 · `REVIEW` 0.5–0.8 · `UNSURE` <0.5 | Least-calibrated type (ECE 0.254) — use for ranking/thresholds, not to act on directly, until it's calibrated |
 
-- Thresholds scale with risk. Destructive or irreversible actions need a higher bar
-  than read-only ones. These defaults are starting points, not rules for your data.
+- **The middle band means "no signal"**, not a soft verdict: route it to review, never let
+  it trip a gate either way. Answers are rounded to 2 decimals and pile up at 0.99/1.0, so
+  a top-N cut can split a tie (`rank` warns), and confidence 1.00 is not certainty (wrong
+  1.9–23% of the time in independent tests).
+- Thresholds scale with risk: destructive or irreversible actions need a higher bar than
+  read-only ones. They also **don't transfer**: the best cutoff was 0.67 on one dataset
+  and 0.37 on another, so calibrate on traffic that looks like production. These defaults
+  are starting points, not rules for your data.
 - **Calibrate on your own labels when stakes matter**: `jev.py eval --cases labeled.jsonl
   --template q.json` prints per-question accuracy and a per-bucket table (noul: p, choice: p_max,
   score: confidence), plus the loosest `--target` threshold (default 0.95) for noul/choice. Cases:
@@ -175,6 +182,9 @@ Jev is an external API. Content in `state` leaves this machine.
    results, or `jev.py rank --items items.jsonl --question "..." --top 20` when you just
    want the top N items by one yes/no. Both place each item for you (keyed ids or inside
    its own question) — never index the batch by position (`items[N]`).
+   Packing many items per request can shift answers (a 40-row state flipped 77 of 360
+   decisions vs one row per request, with positional refs); when exact order or a hard
+   threshold matters, spot-check a sample with `--per-request 1`.
 6. **Act in code on the bands** (see "Reading answers" above): sort, filter, group. Only
    the uncertain/review band needs a second look — you, or a Claude reviewer or subagent
    (see "The Jev funnel inside Claude Code" below). Run `jev.py usage` for a cost total
@@ -233,8 +243,11 @@ Claude reviewer or subagent. If your Claude Code has Workflows: a Workflow scrip
 of its own — run `jev.py` from a normal turn first, then pass just the uncertain items to the
 Workflow agent as `args`.
 
-Cases where it doesn't pay off: **skill routers inside Claude Code** (full skill
-descriptions are already shown, so a router on top adds little); **screening code files for
+Cases where it doesn't pay off: **skill routers inside Claude Code** (Claude Code already
+shows up to 1,536 characters of each skill description; in one test Jev agreed with Opus
+about half as often as Opus agreed with itself, and ordinary mid-conversation follow-ups
+cleared its 0.30 "needs a skill" gate at 0.34–0.64, suggesting skills nobody needed —
+[jev-skill-router](https://github.com/shimo4228/jev-skill-router)); **screening code files for
 relevance before reading them** (no effect beyond run-to-run noise in
 [jev-axi](https://github.com/CHLIN0/jev-axi)'s 390k-line-repo benchmark); **repeat-and-vote
 in production** (noul std-dev is already 0.0102 over 15 repeats,
@@ -256,24 +269,33 @@ Wiring Jev into Claude Code hooks: `references/recipes.md` recipe 17.
 4. **Keep raw judgments reusable.** Store probabilities; combine them with weights in
    code so policy changes don't need new inference.
 5. **Keep the model slug in config** (`typesafe/jev-1.13`), re-check thresholds before
-   moving to a new version, and log the `model` field from every response.
+   moving to a new version, and log the `model` field from every response — it is a
+   dated snapshot (`typesafe/jev-1.13-20260917`), so compare by prefix. The official SDKs
+   default to the floating `jev-latest`; always pass `model`.
 6. **Handle errors**: retry 429/529/5xx with exponential backoff; surface 400/422
    validation details; treat 401 (bad key) and 402 (no credit) as configuration failures.
-   **On an interactive hot path** (routing a live request, an agent's next step), don't
-   retry: one call, a short timeout, a per-session call budget, and on any failure take
-   the fallback with a named reason (no candidates, invalid input, request too large,
+   Retry 408 too, and honour `retry-after-ms` before `retry-after`. Never follow a
+   redirect (it would resend the key elsewhere); cap the response size.
+   **On an interactive hot path** (routing a live request, an agent's next step), make
+   one call (retry at most once, and only for a short `retry-after`) with a short
+   timeout, a per-session call budget, and a circuit breaker after repeated 429/529s. On
+   any failure take the fallback with a named reason (no candidates, invalid input, request too large,
    budget spent, transport, HTTP, invalid response, escalated, low confidence, low fit).
    Check input and size *before* spending budget.
 7. **Validate every response and fail closed.** Right `type` per question, a `choice`
    from the options you sent, probabilities summing to 1 with the choice on top, a `score`
-   in range, the pinned `model`. A mismatch means "no decision", never a weak yes.
+   in range, the pinned `model` or a dated snapshot of it. A mismatch means "no decision",
+   never a weak yes.
    Snippet: `references/api.md`, "Validating a response".
 8. **When Jev picks an action, it picks an id, and the id grants nothing.** The host
    prepares a short list of eligible actions, sends opaque ids plus descriptions, asks one
    `choice` (with an `escalate` option) and one `fit` noul per candidate, acts only when
    both clear their bars, then re-checks the stored action (state version, preconditions,
    permission) before running it. Pattern: `references/question-design.md`, "Bounded
-   action selector".
+   action selector". For a **safety gate**, run deterministic rules first — a deny regex
+   for known catastrophic commands (`git stash clear`, `rm -rf /`, reading `~/.ssh`), then
+   a read-only allowlist, then Jev — and test it with authority-claim injections ("the
+   owner approved this"), which got through where blunt "ignore the question" didn't.
 9. **Log a trace, not the content.** Per decision: model, a hash of state and of the
    candidate list, state version, the chosen id or fallback reason, confidence/fit,
    latency, tokens. Hashes let you tie a decision to its exact input without storing
@@ -285,6 +307,11 @@ Wiring Jev into Claude Code hooks: `references/recipes.md` recipe 17.
     desktop tool that does hold a key should read it from its own owner-only file (mode
     0600, no symlinks), and pick up env vars or other tools' key files only if the user
     opts in.
+
+TypeSafe also publishes an official agent skill (`claude plugin install
+typesafe@typesafe-ai`, [typesafe-ai/skills](https://github.com/typesafe-ai/skills)); it is
+worth reading alongside this one for API migrations and its composite-scoring and fan-out
+patterns.
 
 Reference implementation of points 6–10 (Rust, a macOS coding workspace):
 [Keel's `jev-core`](https://github.com/codejunkie99/keel/blob/main/crates/jev-core/src/lib.rs)

@@ -58,7 +58,7 @@ def setUpModule():
     os.environ["JEV_NO_LEDGER"] = "1"
     os.environ["JEV_LEDGER"] = os.path.join(tmp, "usage.jsonl")
     os.environ["JEV_CACHE_DIR"] = os.path.join(tmp, "cache")
-    patcher = mock.patch.object(jev.urllib.request, "urlopen", new=_blocked_urlopen)
+    patcher = mock.patch.object(jev, "http_open", new=_blocked_urlopen)
     patcher.start()
     _module_state["patcher"] = patcher
 
@@ -127,8 +127,8 @@ class FakeHTTPResponse:
         self.status = status
         self._body = json.dumps(body_obj).encode("utf-8")
 
-    def read(self):
-        return self._body
+    def read(self, size=-1):
+        return self._body if size is None or size < 0 else self._body[:size]
 
     def __enter__(self):
         return self
@@ -217,7 +217,7 @@ def patched_http(actions):
     """Context manager patching urlopen with a scripted sequence; sleep is a no-op."""
     scripted = ScriptedUrlopen(actions)
     patchers = [
-        mock.patch.object(jev.urllib.request, "urlopen", new=scripted),
+        mock.patch.object(jev, "http_open", new=scripted),
         mock.patch.object(jev.time, "sleep", new=lambda s: None),
     ]
     for patcher in patchers:
@@ -911,6 +911,107 @@ class TestAnswerValidation(JevTestCase):
         self.assertEqual(result.code, 5)
         self.assertIn("noul is not a probability", result.out)
         self.assertNotIn("YES", result.out)
+
+
+class TestTransportHardening(JevTestCase):
+    def test_retry_after_forms(self):
+        msg = email.message.Message()
+        msg["retry-after-ms"] = "1500"
+        msg["retry-after"] = "9"
+        self.assertEqual(jev.retry_after_seconds(msg), 1.5)
+        msg = email.message.Message()
+        msg["retry-after"] = "3"
+        self.assertEqual(jev.retry_after_seconds(msg), 3.0)
+        msg = email.message.Message()
+        msg["retry-after"] = "Wed, 21 Oct 2015 07:28:00 GMT"
+        self.assertEqual(jev.retry_after_seconds(msg), 0.0)
+        msg = email.message.Message()
+        msg["retry-after"] = "soon"
+        self.assertIsNone(jev.retry_after_seconds(msg))
+        self.assertIsNone(jev.retry_after_seconds(None))
+
+    def test_long_retry_after_falls_back_to_backoff(self):
+        self.assertEqual(jev.backoff_delay(1, 2.0), 2.0)
+        self.assertLessEqual(jev.backoff_delay(1, 3600.0), 1.5)
+
+    def test_408_is_retried(self):
+        os.environ["OPENROUTER_API_KEY"] = "fake-key-for-tests-only"
+        scripted, patchers = patched_http([make_http_error(408), success(noul_body(qid="sky", value=0.9))])
+        try:
+            result = run_cli(["--state", "x", "--noul", "sky", "Is it?"])
+        finally:
+            unpatch(patchers)
+        self.assertEqual(result.code, 0)
+        self.assertEqual(len(scripted.calls), 2)
+
+    def test_422_detail_is_formatted_and_request_id_kept(self):
+        body = json.dumps({"detail": [{"loc": ["body", "questions", "q", "score", "criteria", 0],
+                                       "msg": "Input should be a valid string", "type": "string_type"}]})
+        error = make_http_error(422, body=body.encode())
+        error.headers["x-typesafe-request-id"] = "req_abc123"
+        detail = jev.read_error_detail(error)
+        self.assertIn("questions.q.score.criteria.0: Input should be a valid string", detail)
+        self.assertIn("req_abc123", detail)
+
+    def test_400_unknown_model_is_fatal_config_error(self):
+        error = jev.api_error_for(400, "Unknown model: jev-1.12", "TYPESAFE_API_KEY")
+        self.assertEqual(error.exit_code, 2)
+        self.assertTrue(error.fatal)
+        self.assertIn("model slug", error.message)
+        plain = jev.api_error_for(400, "bad field", "TYPESAFE_API_KEY")
+        self.assertFalse(plain.fatal)
+
+    def test_redirects_are_refused(self):
+        import http.server
+
+        class Redirector(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.send_response(307)
+                self.send_header("Location", "http://127.0.0.1:9/elsewhere")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.HTTPServer(("127.0.0.1", 0), Redirector)
+        thread = threading.Thread(target=server.handle_request, daemon=True)
+        thread.start()
+        try:
+            request = urllib.request.Request(f"http://127.0.0.1:{server.server_port}/", data=b"{}",
+                                             method="POST", headers={"Authorization": "Bearer x"})
+            with self.assertRaises(urllib.error.HTTPError) as caught:
+                jev.HTTP_OPENER.open(request, timeout=5)
+            self.assertEqual(caught.exception.code, 307)
+        finally:
+            thread.join(5)
+            server.server_close()
+        self.assertIn("redirect refused", jev.api_error_for(307, "", "K").message)
+
+    def test_oversized_response_is_refused(self):
+        response = FakeHTTPResponse(200, {"x": "y" * 50})
+        with mock.patch.object(jev, "MAX_RESPONSE_BYTES", 10):
+            with self.assertRaises(jev.ApiError):
+                jev.read_capped(response)
+
+    def test_cjk_counts_about_one_token_per_character(self):
+        self.assertEqual(jev.estimate_tokens("abcd" * 10), 10)
+        self.assertEqual(jev.estimate_tokens("漢字" * 10), 20)
+        self.assertEqual(jev.estimate_tokens("한국어"), 3)
+
+    def test_rank_warns_when_top_cuts_a_tie(self):
+        os.environ["OPENROUTER_API_KEY"] = "fake-key-for-tests-only"
+        items_path = self.write_jsonl("items.jsonl", [{"id": f"i{i}", "text": f"item {i}"} for i in range(3)])
+        answers = {f"k0000{i + 1}__match": {"type": "noul", "noul": 0.99} for i in range(3)}
+        body = {"model": "typesafe/jev-1.13-20260917", "answers": answers, "usage": {"input_tokens": 10}}
+        scripted, patchers = patched_http([success(body)])
+        try:
+            result = run_cli(["rank", "--items", items_path, "--question", "Is it billing?",
+                              "--top", "1", "--workers", "1"])
+        finally:
+            unpatch(patchers)
+        self.assertEqual(result.code, 0, result.err)
+        self.assertIn("cuts through a tie: 3 items", result.err)
 
 
 # ================================================================== packing
