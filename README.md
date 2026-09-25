@@ -280,6 +280,12 @@ an error (or a detected secret, which `--lenient` never relaxes):
 - **Secret scanning** — every request (state, questions, criteria) is scanned
   for common key/token patterns (OpenRouter, Anthropic, AWS, GitHub, Google,
   Slack, private-key blocks) and a match blocks the send.
+- **Answer validation** — every answer is checked against the question that
+  was sent (matching type, a `choice` from the offered options, probabilities
+  that sum to 1 with the choice on top, a `score` in range). An answer that
+  fails becomes an error row: it is never banded or cached. This fail-closed
+  check is adapted from [Keel](https://github.com/codejunkie99/keel)'s
+  `jev-core` client.
 - **The 32k context limit** (state + all questions combined, on OpenRouter)
   is enforced before sending; an oversized item is reported as an error row
   with a hint to trim it or use `--fields`.
@@ -292,6 +298,7 @@ inside a Claude Code session — see `skills/jev/SKILL.md`'s "Mode B" and:
 - [`skills/jev/references/api.md`](skills/jev/references/api.md) — request/response shapes, limits, errors, plain HTTP examples
 - [`skills/jev/references/kotlin.md`](skills/jev/references/kotlin.md) — Android app + JVM backend
 - [`skills/jev/references/swift.md`](skills/jev/references/swift.md) — iOS app + backend
+- [Keel](https://github.com/codejunkie99/keel)'s [`jev-core`](https://github.com/codejunkie99/keel/blob/main/crates/jev-core/src/lib.rs) — a Rust reference for picking an agent's next action safely (see "Bounded action selector" in [`question-design.md`](skills/jev/references/question-design.md))
 
 **Never ship an API key in client code** — a mobile app, an APK/AAB, or a
 browser bundle. Anyone can extract it, and an OpenRouter key is especially
@@ -360,10 +367,21 @@ No dependencies to install beyond Python 3.9+. See
 - Missing no-match option: <https://github.com/suraj-phanindra/wellposed>
 - Positional references: <https://gist.github.com/pedramamini/014676fa8684d91bf7000f4623701ada>
 - Prompt injection moving a verdict: <https://venturebeat.com/security/companies-are-putting-jev-in-charge-of-ai-agent-decisions-and-prompt-injection-can-influence-the-verdict>
+- Bounded action selection and fail-closed response checks: [Keel](https://github.com/codejunkie99/keel) by [@codejunkie99](https://github.com/codejunkie99)
 
 More links, including per-recipe sources, are in
 [`skills/jev/references/recipes.md`](skills/jev/references/recipes.md) and
 [`skills/jev/references/question-design.md`](skills/jev/references/question-design.md).
+
+## Acknowledgements
+
+The answer validation in `jev.py`, and the skill's guidance on selecting agent
+actions, validating responses, call budgets, fallback reasons and decision
+traces, are adapted from [Keel](https://github.com/codejunkie99/keel) by
+[@codejunkie99](https://github.com/codejunkie99), in particular its
+[`jev-core`](https://github.com/codejunkie99/keel/tree/main/crates/jev-core)
+crate and [decision architecture](https://github.com/codejunkie99/keel/blob/main/docs/decision-architecture.md).
+Thanks to its author for publishing it. This project is not affiliated with Keel.
 
 ## Disclaimer
 
