@@ -145,7 +145,9 @@ Sorts items by the probability that one yes/no question holds — a single
   yes / no).
 - `--context @F|JSON` — shared data every request sees as `context`: literal
   JSON/text, `@path`, or `-` for stdin.
-- `--top N` — rows to print (default 20).
+- `--top N` — rows to print (default 20). Answers are rounded to two
+  decimals and often tie near 0.99; when the cut at `N` falls inside a tie,
+  `rank` warns on stderr, because which tied items make the cut is arbitrary.
 - `--min P` — keep only items with `p >= P`.
 - `--out F` — write the ranked rows as JSONL, best first: `{"id", "p",
   "band"}`. `--min` applies to this file too; items that errored are left out
@@ -398,9 +400,17 @@ None of these are needed for `--dry-run` or `--mock`.
 | `usage` | ok (including no ledger or no matching rows) | malformed `--since` or unreadable ledger | — | — | — |
 
 `Ctrl-C` exits `130` for any command. A `4xx`/`5xx` from the API is retried
-automatically (exponential backoff honoring `retry-after`) for `429`, `500`,
-`502`, `503`, `504` and `529`; `400`, `401`, `402`, `403`, `404` and `422` are
-not retried.
+automatically for `408`, `429`, `500`, `502`, `503`, `504` and `529`, with
+exponential backoff honoring `retry-after-ms`, then `retry-after` (seconds or
+an HTTP date; a requested wait over 60 s falls back to normal backoff).
+`400`, `401`, `402`, `403`, `404` and `422` are not retried; a `400 Unknown
+model` stops the whole job like a `404`, and a `422` is shown as
+`field.path: message`. Error messages include TypeSafe's
+`x-typesafe-request-id` when the response carries one.
+
+Redirects are never followed (a redirected request would carry the
+`Authorization` header to another host); a `3xx` stops the job as a
+configuration error. Response bodies over 8 MB are refused.
 
 ## Providers and limits
 

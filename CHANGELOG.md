@@ -20,9 +20,38 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   call budgets with named fallback reasons on interactive paths, content-free
   decision traces, and untrusted-data wording for instructions.
 
+- `jev.py` transport hardening, following the official SDKs and other Jev
+  clients: redirects are refused (they would resend the key to another host),
+  response bodies are capped at 8 MB, `408` is retried, `retry-after-ms` and
+  HTTP-date `retry-after` are honoured (waits over 60 s fall back to backoff),
+  `400 Unknown model` is treated as a fatal slug error, `422` bodies are shown as
+  `field.path: message`, and `x-typesafe-request-id` is appended to errors.
+- `rank` warns when `--top` cuts through a tie (answers are rounded and pile up
+  near 0.99).
+- Token estimates count CJK and Hangul characters at about one token each.
+- Skill docs: measured findings from about 25 public Jev projects and
+  evaluations: injection results (authority claims beat blunt commands; gates
+  can be jammed; a confidence floor is a costly detector), option order and
+  option-name effects, rounding and ties, per-type miscalibration, thresholds
+  that don't transfer between datasets, language effects, packing effects,
+  choice squashing stated probabilities, tournament vs independent-score
+  routing, rerank fusion, per-request billing overhead, the official SDKs'
+  retry behaviour, and a safety-gate recipe (deny rules → allowlist → Jev,
+  minimal gate state, fork-safe PR workflow).
+
 ### Changed
 
 - `ask` exits `5` (was `0`) when a question gets no answer back.
+
+### Fixed
+
+- The docs' response-validation advice compared the response `model` to the
+  pinned slug exactly; live responses name a dated snapshot
+  (`typesafe/jev-1.13-20260917`), so the check now matches by prefix.
+- The skill no longer recommends adding a nonce to measure variance: a nonce
+  itself moved answers in a 50-call test. It also no longer claims batched
+  questions give the same answers as one-at-a-time calls; they give similar
+  ones.
 
 ## [1.0.0] - 2026-09-24
 
