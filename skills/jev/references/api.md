@@ -9,6 +9,7 @@ semantics come from TypeSafe's docs (`https://docs.typesafe.ai/llms.txt`).
 - Request body
 - Question shapes
 - Response body and answer shapes
+- Validating a response (fail closed)
 - Model, limits, pricing
 - Errors and retries
 - Python and JavaScript examples
@@ -111,6 +112,45 @@ copied from before that date will fail.
 - `usage.cost`: USD cost of that call, in **every** OpenRouter Jev response. Use it
   directly instead of estimating from the per-token list price.
 - Log `model` from every response so results can be traced to a model version.
+
+## Validating a response (fail closed)
+
+Typed output guarantees a shape, not that the shape matches what you asked. Before acting
+on an answer, check it against the question you sent, and treat any mismatch as "no
+decision" (fall back), never as a low-confidence yes. `jev.py` does this for every answer
+(a failure becomes an error row, never a band); in your own code:
+
+```python
+import math
+
+def is_p(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x) and 0 <= x <= 1
+
+def answer_ok(question, answer, pinned_model, response_model):
+    if response_model != pinned_model or answer.get("type") != question["type"]:
+        return False
+    if question["type"] == "noul":
+        return is_p(answer.get("noul"))
+    options = (list(question["criteria"]) if question["type"] == "choice"
+               else [str(i) for i in range(len(question["criteria"]))])
+    probs = answer.get("probabilities") or {}
+    if not is_p(answer.get("confidence")) or not set(probs) <= set(options):
+        return False
+    if probs and (not all(is_p(p) for p in probs.values()) or abs(sum(probs.values()) - 1) > 0.02):
+        return False
+    if question["type"] == "choice":
+        return answer.get("choice") in options and (
+            not probs or probs.get(answer["choice"], 0) >= max(probs.values()) - 1e-6)
+    score = answer.get("score")
+    return isinstance(score, (int, float)) and 0 <= score <= len(options) - 1
+```
+
+The checks that matter most: the `choice` is one of the options you offered (an invented
+id must never reach a dispatcher), the distribution sums to 1, the chosen option is the
+most probable one, and the response `model` is the slug you pinned. Also cap the response
+size you'll read and disable HTTP redirects on the client, so a misrouted call can't
+hand you someone else's body. Keel's Rust client is a complete example of these checks
+([`jev-core`](https://github.com/codejunkie99/keel/blob/main/crates/jev-core/src/lib.rs)).
 
 ## Model, limits, pricing (jev-1.13)
 

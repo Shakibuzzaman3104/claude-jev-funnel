@@ -820,6 +820,99 @@ class TestBands(unittest.TestCase):
         self.assertEqual(jev.BAND_ORDER["score"], ("CONFIDENT", "REVIEW", "UNSURE"))
 
 
+class TestAnswerValidation(JevTestCase):
+    CHOICE = {"type": "choice", "instructions": "Which?",
+              "criteria": {"a": "A", "b": "B", "none": "Neither"}}
+    SCORE = {"type": "score", "instructions": "How much?",
+             "criteria": ["Not at all, no sign of it", "Somewhat, a few signs", "Strongly, many signs"]}
+    NOUL = {"type": "noul", "instructions": "Is it?"}
+
+    def good_choice(self, **overrides):
+        answer = {"type": "choice", "choice": "a", "confidence": 0.7,
+                  "probabilities": {"a": 0.8, "b": 0.15, "none": 0.05}}
+        answer.update(overrides)
+        return answer
+
+    def test_valid_answers_pass(self):
+        self.assertIsNone(jev.answer_problem(self.NOUL, {"type": "noul", "noul": 0.3}))
+        self.assertIsNone(jev.answer_problem(self.CHOICE, self.good_choice()))
+        self.assertIsNone(jev.answer_problem(self.SCORE, {
+            "type": "score", "score": 1.4, "confidence": 0.6,
+            "probabilities": {"0": 0.1, "1": 0.4, "2": 0.5}}))
+
+    def test_type_mismatch(self):
+        self.assertIn("expected a noul", jev.answer_problem(self.NOUL, self.good_choice()))
+
+    def test_noul_out_of_range_or_missing(self):
+        for value in (1.2, -0.1, None, "0.9", True, float("nan")):
+            self.assertIsNotNone(jev.answer_problem(self.NOUL, {"type": "noul", "noul": value}), value)
+
+    def test_choice_outside_offered_options(self):
+        problem = jev.answer_problem(self.CHOICE, self.good_choice(choice="invented"))
+        self.assertIn("not one of the offered options", problem)
+
+    def test_choice_unknown_probability_key(self):
+        answer = self.good_choice(probabilities={"a": 0.8, "zzz": 0.2})
+        self.assertIn("unknown options", jev.answer_problem(self.CHOICE, answer))
+
+    def test_choice_not_argmax(self):
+        answer = self.good_choice(choice="b")
+        self.assertIn("not the most probable", jev.answer_problem(self.CHOICE, answer))
+
+    def test_distribution_must_sum_to_one(self):
+        answer = self.good_choice(probabilities={"a": 0.8, "b": 0.5, "none": 0.0})
+        self.assertIn("sum to 1", jev.answer_problem(self.CHOICE, answer))
+
+    def test_bad_confidence(self):
+        self.assertIn("confidence", jev.answer_problem(self.CHOICE, self.good_choice(confidence=3)))
+
+    def test_score_out_of_range(self):
+        problem = jev.answer_problem(self.SCORE, {"type": "score", "score": 2.5, "confidence": 0.9})
+        self.assertIn("outside 0..2", problem)
+
+    def test_mock_answers_always_validate(self):
+        questions = {f"c{n}": {"type": "choice", "instructions": "Which?",
+                               "criteria": {f"o{i}": None for i in range(n)}} for n in (2, 15, 255)}
+        questions["s"] = self.SCORE
+        questions["n"] = self.NOUL
+        response = jev.mock_response({"state": "x", "model": "m", "questions": questions})
+        for question_id, question in questions.items():
+            self.assertIsNone(jev.answer_problem(question, response["answers"][question_id]), question_id)
+
+    def test_batch_turns_invalid_answer_into_error_row(self):
+        os.environ["OPENROUTER_API_KEY"] = "fake-key-for-tests-only"
+        template = self.write_json("t.json", {"questions": {"team": {
+            "type": "choice", "instructions": "Which team handles `item.text`?",
+            "criteria": {"billing": "Payments", "none": "No team fits"}}}})
+        items_path = self.write_jsonl("items.jsonl", [{"id": "a", "text": "refund please"}])
+        body = {"model": "typesafe/jev-1.13", "usage": {"input_tokens": 10},
+                "answers": {"k00001__team": {"type": "choice", "choice": "delete_everything",
+                                             "confidence": 1.0,
+                                             "probabilities": {"billing": 0.0, "none": 0.0,
+                                                               "delete_everything": 1.0}}}}
+        scripted, patchers = patched_http([success(body)])
+        try:
+            result = run_cli(["batch", "--items", items_path, "--template", template, "--workers", "1"])
+        finally:
+            unpatch(patchers)
+        self.assertEqual(result.code, 5)
+        row = result.json_lines()[0]
+        self.assertIn("invalid answer for team", row["error"])
+        self.assertNotIn("answers", row)
+
+    def test_ask_prints_invalid_answer_and_exits_5(self):
+        os.environ["OPENROUTER_API_KEY"] = "fake-key-for-tests-only"
+        scripted, patchers = patched_http([success(noul_body(qid="sky", value=1.7))])
+        try:
+            result = run_cli(["--state", "The sky is blue.", "--noul", "sky",
+                              "Does the text say the sky is blue?"])
+        finally:
+            unpatch(patchers)
+        self.assertEqual(result.code, 5)
+        self.assertIn("noul is not a probability", result.out)
+        self.assertNotIn("YES", result.out)
+
+
 # ================================================================== packing
 
 class FakeEntry:

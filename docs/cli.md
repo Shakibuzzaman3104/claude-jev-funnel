@@ -269,6 +269,12 @@ lowest first.
 {"id": "L002", "error": "no answer returned for category"}
 ```
 
+An answer that doesn't fit the question it was sent for (wrong type, a `choice`
+outside the offered options, probabilities that don't sum to 1 or don't put the
+choice on top, a `score` out of range) becomes an error row too — for example
+`"invalid answer for category (choice 'x' is not one of the offered options)"` —
+and is never cached.
+
 `cached: true` marks an answer served from the local answer cache rather than
 a live call. `rank --out` writes a different, simpler row per item:
 `{"id": ..., "p": ..., "band": ...}`, sorted best (highest `p`) first.
@@ -386,8 +392,8 @@ None of these are needed for `--dry-run` or `--mock`.
 
 | Command | 0 | 2 | 3 | 4 | 5 |
 | --- | --- | --- | --- | --- | --- |
-| `ask` | ok | bad input, lint error, or API 400/404/422 | auth/credit | API/network | — |
-| `batch` / `rank` / `eval` | all items answered | bad input, lint error, or 404 | auth/credit | — | some rows errored (includes network failures per item — check the error rows) |
+| `ask` | ok | bad input, lint error, or API 400/404/422 | auth/credit | API/network | a question got no answer or an invalid one |
+| `batch` / `rank` / `eval` | all items answered | bad input, lint error, or 404 | auth/credit | — | some rows errored (includes network failures and invalid answers per item — check the error rows) |
 | `doctor` | ok | API 400/404/422 (e.g. bad model slug) | auth/credit | network/API error | — |
 | `usage` | ok (including no ledger or no matching rows) | malformed `--since` or unreadable ledger | — | — | — |
 

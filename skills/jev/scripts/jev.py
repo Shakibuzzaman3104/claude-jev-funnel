@@ -36,7 +36,8 @@ Env:
   JEV_NO_LEDGER=1     don't write the ledger
   JEV_CACHE_DIR       answer cache directory (default ~/.cache/jev)
 
-Exit codes: 0 ok, 2 bad input or lint error, 3 auth/credit, 4 API/network, 5 partial batch.
+Exit codes: 0 ok, 2 bad input or lint error, 3 auth/credit, 4 API/network, 5 partial batch
+(or a single request with a missing or invalid answer).
 """
 
 __version__ = "1.0.0"
@@ -100,6 +101,9 @@ KEY_SEPARATOR = "__"
 # Decision bands per question type (starting points; tune with `eval`)
 NOUL_YES, NOUL_NO = 0.8, 0.2
 CHOICE_ACT, CHOICE_REVIEW = 0.8, 0.5  # on the chosen option's probability (p_max)
+# A choice/score distribution must sum to 1 within the larger of these (rounded values
+# drift more with more options).
+PROBABILITY_SUM_TOLERANCE, PROBABILITY_ROUNDING_SLACK = 0.02, 0.005
 SCORE_CONFIDENT, SCORE_REVIEW = 0.8, 0.5  # on confidence
 BAND_ORDER = {
     "noul": ("YES", "NO", "UNCERTAIN"),
@@ -842,6 +846,53 @@ def ledger_recorder(command, args, questions, items):
     return record
 
 
+# ---------------------------------------------------------------- answer validation
+
+def is_probability(value):
+    """A finite number in [0, 1] (bools excluded)."""
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(value) and 0.0 <= value <= 1.0)
+
+
+def answer_problem(question, answer):
+    """Why an answer can't be trusted for this question, or None. Fail closed: a typed
+    shape that doesn't match what was asked must never be banded as ACT or YES."""
+    question_type = question.get("type")
+    if answer.get("type") != question_type:
+        return f"expected a {question_type} answer, got {answer.get('type')!r}"
+    if question_type == "noul":
+        return None if is_probability(answer.get("noul")) else "noul is not a probability"
+    if "confidence" in answer and not is_probability(answer["confidence"]):
+        return "confidence is not a probability"
+    criteria = question.get("criteria")
+    options = ([str(key) for key in criteria] if question_type == "choice"
+               else [str(index) for index in range(len(criteria))])
+    probabilities = answer.get("probabilities")
+    if probabilities is not None:
+        if not isinstance(probabilities, dict) or not probabilities:
+            return "probabilities is not an object"
+        unknown = [key for key in probabilities if key not in options]
+        if unknown:
+            return "probabilities name unknown options: " + ", ".join(sorted(unknown)[:5])
+        if not all(is_probability(p) for p in probabilities.values()):
+            return "probabilities hold a value outside [0, 1]"
+        slack = max(PROBABILITY_SUM_TOLERANCE, PROBABILITY_ROUNDING_SLACK * len(probabilities))
+        if abs(sum(probabilities.values()) - 1.0) > slack:
+            return "probabilities do not sum to 1"
+    if question_type == "choice":
+        choice = answer.get("choice")
+        if choice not in options:
+            return f"choice {choice!r} is not one of the offered options"
+        if probabilities and probabilities.get(choice, 0.0) + 1e-6 < max(probabilities.values()):
+            return f"choice {choice!r} is not the most probable option"
+        return None
+    score = answer.get("score")
+    if (not isinstance(score, (int, float)) or isinstance(score, bool) or not math.isfinite(score)
+            or not -1e-6 <= score <= len(options) - 1 + 1e-6):
+        return f"score is outside 0..{len(options) - 1}"
+    return None
+
+
 # ---------------------------------------------------------------- bands and display
 
 def choice_top_probability(answer):
@@ -931,7 +982,8 @@ commands (run `jev.py <command> --help`):
 bands: noul YES >= 0.8, NO <= 0.2, else UNCERTAIN
        choice (on the chosen option's probability) ACT >= 0.8, REVIEW >= 0.5, else ABSTAIN
        score (on confidence) CONFIDENT >= 0.8, REVIEW >= 0.5, else UNSURE
-exit codes: 0 ok, 2 bad input or lint error, 3 auth/credit, 4 API/network, 5 partial batch
+exit codes: 0 ok, 2 bad input or lint error, 3 auth/credit, 4 API/network,
+            5 partial batch, or a missing/invalid answer
 """
 
 
@@ -1043,11 +1095,16 @@ def run_ask(argv):
         return 0
 
     answers = response.get("answers", {})
-    for question_id in body["questions"]:
-        if question_id in answers:
-            print(format_answer(question_id, answers[question_id]))
+    unusable = 0
+    for question_id, question in body["questions"].items():
+        answer = answers.get(question_id)
+        problem = (answer_problem(question, answer) if isinstance(answer, dict)
+                   else "no answer returned")
+        if problem:
+            unusable += 1
+            print(f"{question_id:<28} ({problem})")
         else:
-            print(f"{question_id:<28} (no answer returned)")
+            print(format_answer(question_id, answer))
 
     cost, cost_source, input_tokens = cost_from_response(response)
     latency = response.get("_latency_ms")
@@ -1056,7 +1113,7 @@ def run_ask(argv):
          f"{format_cost(cost, cost_source)}{latency_text}")
     if any(question.get("type") == "score" for question in body["questions"].values()):
         note(SCORE_NOTE)
-    return 0
+    return 5 if unusable else 0
 
 
 # ---------------------------------------------------------------- items and templates
@@ -1546,15 +1603,22 @@ def run_batch_engine(args, template, items, command, out_path=None):
         model = response.get("model") or args.model
         finished, cache_rows = [], []
         for item, key in request.entries:
-            item_answers, missing = {}, []
+            item_answers, missing, invalid = {}, [], []
             for question_id in question_ids:
-                answer = answers.get(f"{key}{KEY_SEPARATOR}{question_id}")
-                if isinstance(answer, dict):
-                    item_answers[question_id] = answer
-                else:
+                sent_id = f"{key}{KEY_SEPARATOR}{question_id}"
+                answer = answers.get(sent_id)
+                if not isinstance(answer, dict):
                     missing.append(question_id)
+                    continue
+                problem = answer_problem(request.body["questions"][sent_id], answer)
+                if problem:
+                    invalid.append(f"{question_id} ({problem})")
+                else:
+                    item_answers[question_id] = answer
             if missing:
                 row = error_row(item, "no answer returned for " + ", ".join(missing))
+            elif invalid:
+                row = error_row(item, "invalid answer for " + "; ".join(invalid))
             else:
                 row = answer_row(item, item_answers, model, False)
                 cache_rows.append((cache_key(args.model, args.pack, template, item.payload),

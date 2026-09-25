@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `jev.py` validates every answer against the question it sent: matching
+  `type`, a `choice` from the offered options, probabilities in [0, 1] that sum
+  to 1 with the choice on top, and a `score` in range. In `batch`/`rank`/`eval`
+  an invalid answer becomes an error row (never banded, never cached); a single
+  request prints the problem and exits `5`.
+- Skill guidance adapted from Keel's `jev-core` client: a bounded action
+  selector (`choice` with `escalate` plus a per-candidate `fit` noul, acting
+  only when both clear their bars), fail-closed response validation, no-retry
+  call budgets with named fallback reasons on interactive paths, content-free
+  decision traces, and untrusted-data wording for instructions.
+
+### Changed
+
+- `ask` exits `5` (was `0`) when a question gets no answer back.
+
 ## [1.0.0] - 2026-09-24
 
 First public release.

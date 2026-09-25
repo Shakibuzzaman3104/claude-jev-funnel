@@ -190,7 +190,9 @@ the closest one instead of starting from scratch.
 calls OpenRouter by default. It handles auth, retries with backoff on 429/500/502/503/504/529
 and network errors (honouring `retry-after`), lints every request before sending — structural checks,
 positional refs, missing no-match options, descriptive-score-level checks, secrets (see
-"Question design" above) — and keeps a local cost ledger for per-job and per-label totals
+"Question design" above) — validates every answer against the question it sent (right
+type, a `choice` from the offered options, a distribution that sums to 1 with the choice
+on top, a `score` in range; a bad one becomes an error row, never a band), and keeps a local cost ledger for per-job and per-label totals
 (`doctor` shows the OpenRouter key's usage and remaining limit; TypeSafe direct has no
 balance endpoint).
 
@@ -214,8 +216,9 @@ Exit codes: `0` every row answered, `2` bad input, lint error, unknown model slu
 (404), or, for a single request and `doctor`, a rejected request (400/422) — in
 `batch`/`rank`/`eval` a 400/422 becomes error rows (exit `5`); `3` auth/credit error
 (401/402/403); `4` API/network failure after retries (single request and `doctor`); `5` a
-`batch`/`rank`/`eval` job finished with some error rows (network failures land here too —
-check the error rows).
+`batch`/`rank`/`eval` job finished with some error rows (network failures and invalid
+answers land here too — check the error rows), or a single request got a missing or
+invalid answer.
 
 Env: `OPENROUTER_API_KEY` / `TYPESAFE_API_KEY` (auth), `JEV_PROVIDER`, `JEV_MODEL`,
 `JEV_APP_URL` / `JEV_APP_NAME` (OpenRouter ranking headers), `JEV_LEDGER` (cost-ledger
@@ -256,10 +259,36 @@ Wiring Jev into Claude Code hooks: `references/recipes.md` recipe 17.
    moving to a new version, and log the `model` field from every response.
 6. **Handle errors**: retry 429/529/5xx with exponential backoff; surface 400/422
    validation details; treat 401 (bad key) and 402 (no credit) as configuration failures.
-7. **Keep the API key server-side.** Never ship it in a mobile app, APK/AAB, or web
-   bundle — anyone can extract it. Mobile apps call your own backend, which calls Jev — or
-   skip the runtime call: tag content you already bundle (tips, prompts, onboarding copy,
-   articles) once at build time with a batch job, and ship the tags, not a key.
+   **On an interactive hot path** (routing a live request, an agent's next step), don't
+   retry: one call, a short timeout, a per-session call budget, and on any failure take
+   the fallback with a named reason (no candidates, invalid input, request too large,
+   budget spent, transport, HTTP, invalid response, escalated, low confidence, low fit).
+   Check input and size *before* spending budget.
+7. **Validate every response and fail closed.** Right `type` per question, a `choice`
+   from the options you sent, probabilities summing to 1 with the choice on top, a `score`
+   in range, the pinned `model`. A mismatch means "no decision", never a weak yes.
+   Snippet: `references/api.md`, "Validating a response".
+8. **When Jev picks an action, it picks an id, and the id grants nothing.** The host
+   prepares a short list of eligible actions, sends opaque ids plus descriptions, asks one
+   `choice` (with an `escalate` option) and one `fit` noul per candidate, acts only when
+   both clear their bars, then re-checks the stored action (state version, preconditions,
+   permission) before running it. Pattern: `references/question-design.md`, "Bounded
+   action selector".
+9. **Log a trace, not the content.** Per decision: model, a hash of state and of the
+   candidate list, state version, the chosen id or fallback reason, confidence/fit,
+   latency, tokens. Hashes let you tie a decision to its exact input without storing
+   user text or keys in ordinary logs.
+10. **Keep the API key server-side.** Never ship it in a mobile app, APK/AAB, or web
+    bundle — anyone can extract it. Mobile apps call your own backend, which calls Jev — or
+    skip the runtime call: tag content you already bundle (tips, prompts, onboarding copy,
+    articles) once at build time with a batch job, and ship the tags, not a key. A local
+    desktop tool that does hold a key should read it from its own owner-only file (mode
+    0600, no symlinks), and pick up env vars or other tools' key files only if the user
+    opts in.
+
+Reference implementation of points 6–10 (Rust, a macOS coding workspace):
+[Keel's `jev-core`](https://github.com/codejunkie99/keel/blob/main/crates/jev-core/src/lib.rs)
+and its [decision architecture](https://github.com/codejunkie99/keel/blob/main/docs/decision-architecture.md).
 
 Language-specific code:
 - **Kotlin (Android app + JVM backend):** `references/kotlin.md`
